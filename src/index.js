@@ -195,7 +195,7 @@ export default function FirebaseUI({
             setSendSMS={setSendSMS}
             language={config?.language}
             customText={config?.customText}
-            redirectUrl={config?.redirectUrl}
+            redirectUrl={config?.continueUrl}
           />
         )}
         {emailLinkOpen && (
