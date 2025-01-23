@@ -18,7 +18,7 @@ export default function NameField({
   customText,
 }) {
   const [isDirty, setIsDirty] = useState(false);
-  const isValid = /^[a-zA-Z'-\s]+$/.test(value); //only letters, apostrophes, and hyphens
+  const isValid = /^[a-zA-Z0-9-_]{1,20}$/.test(value); //only letters, numbers, hyphens, and underscores
 
   const inputStyle =
     isDirty && !isValid ? invalidInputStyle : validInputStyle;
@@ -30,7 +30,7 @@ export default function NameField({
   return (
     <div>
       <label
-        htmlFor="email"
+        htmlFor="name"
         style={{ ...labelStyle, ...formLabelStyles }}
       >
         {translate("name", language, customText)}
