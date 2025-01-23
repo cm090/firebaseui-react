@@ -4,7 +4,7 @@ import React from "react";
 import { sendEmailVerification } from "firebase/auth"
 import { useEffect, useState } from "react";
 
-export default function VerifyEmail({ user, setAlert }) {
+export default function VerifyEmail({ user, setAlert, redirectUrl }) {
 
     const [verified, setVerified] = useState(user?.emailVerified);
     const [sent, setSent] = useState(false)
@@ -22,7 +22,9 @@ export default function VerifyEmail({ user, setAlert }) {
             {!sent && <p>You'll need to verify your email to continue.</p>}
             {!sent && <button onClick={async (e) => {
                 e.preventDefault();
-                await sendEmailVerification(user).then(() => {
+                await sendEmailVerification(user, {
+                    url: redirectUrl,
+                }).then(() => {
                     setSent(true)
                     setAlert(`An email has been sent to ${user.email}`)
                 })

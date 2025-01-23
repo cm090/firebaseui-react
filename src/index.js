@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Provider from "./Provider";
-import { providerStyles } from "./providerStyles";
 import PhoneNumber from "./PhoneNumber";
 import EmailLink from "./EmailLink";
 import { isSignInWithEmailLink, onAuthStateChanged } from "firebase/auth";
@@ -18,7 +17,6 @@ export default function FirebaseUI({
   }
 
   const [emailLinkOpen, setEmailLinkOpen] = useState(false);
-  const [queryParams, setQueryParams] = useState(null)
   const [sendSMS, setSendSMS] = useState(false);
   const [verify, setVerify] = useState(false);
   const [isResetPassword, setIsResetPassword] = useState(false) // only true when the user logs in from the reset password link
@@ -34,7 +32,6 @@ export default function FirebaseUI({
   useEffect(() => {
     //initialize values based on query params
     const params = new URLSearchParams(window.location.search)
-    setQueryParams(params)
     setEmailLinkOpen(isSignInWithEmailLink(auth, window.location.href))
     setIsResetPassword(params.get('resetPassword') === "true")
     setShowComponent(true)
@@ -198,6 +195,7 @@ export default function FirebaseUI({
             setSendSMS={setSendSMS}
             language={config?.language}
             customText={config?.customText}
+            redirectUrl={config?.redirectUrl}
           />
         )}
         {emailLinkOpen && (
