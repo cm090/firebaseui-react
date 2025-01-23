@@ -29,6 +29,6 @@ declare module 'firebaseui-react' {
         };
     }
 
-    declare const FirebaseUI: ComponentType<FirebaseUIReactProps>;
+    const FirebaseUI: ComponentType<FirebaseUIReactProps>;
     export default FirebaseUI;
 }
