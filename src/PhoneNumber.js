@@ -7,9 +7,7 @@ import {
   signInWithPhoneNumber,
   updateProfile,
 } from "firebase/auth";
-import { providerStyles } from "./providerStyles";
 import React, { useEffect, useRef, useState } from "react";
-import { errors } from "./Errors";
 import { translate, translateError } from "./Languages";
 
 export default function PhoneNumber({
@@ -28,15 +26,12 @@ export default function PhoneNumber({
   formInputStyles,
   formLabelStyles,
   formSmallButtonStyles,
-  customErrors,
   setMfaResolver,
   setMfaSignIn,
   language,
   customText,
 }) {
   //TODO: custom styles here too
-  const styles =
-    providerStyles["phonenumber"] || providerStyles["default"];
   const [phoneNumber, setPhoneNumber] = useState();
   //TODO phone number validity
   const [phoneNumberValid, setPhoneNumberValid] = useState(false);

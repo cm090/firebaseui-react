@@ -15,8 +15,6 @@ import {
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
 import EmailPassword from "./EmailPassword";
-import PhoneNumber from "./PhoneNumber";
-import { errors } from "./Errors";
 import { translate, translateError } from "./Languages";
 
 export default function Provider({

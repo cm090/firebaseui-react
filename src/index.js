@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Provider from "./Provider";
 import PhoneNumber from "./PhoneNumber";
 import EmailLink from "./EmailLink";

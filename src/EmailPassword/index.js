@@ -2,18 +2,13 @@
 
 import React from "react";
 import {
-  fetchSignInMethodsForEmail,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   getMultiFactorResolver,
-  sendEmailVerification,
-  sendPasswordResetEmail,
   sendSignInLinkToEmail,
-  updateCurrentUser,
   updateProfile,
 } from "firebase/auth";
-import { useState, useRef, useEffect } from "react";
-import { errors } from "../Errors";
+import { useState, useEffect } from "react";
 
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
@@ -35,7 +30,6 @@ export default function EmailPassword({
   authType = "both",
   setAlert,
   setError,
-  continueUrl,
   passwordSpecs,
   setSendSMS,
   setMfaSignIn,
@@ -45,7 +39,6 @@ export default function EmailPassword({
   displayName,
   formLabelStyles,
   formSmallButtonStyles,
-  customErrors,
   setMfaResolver,
   fullLabel,
   language,

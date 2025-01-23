@@ -5,16 +5,7 @@ import { sendEmailVerification } from "firebase/auth"
 import { useEffect, useState } from "react";
 
 export default function VerifyEmail({ user, setAlert, redirectUrl }) {
-
-    const [verified, setVerified] = useState(user?.emailVerified);
     const [sent, setSent] = useState(false)
-    useEffect(() => {
-        if (user) {
-            setVerified(user.emailVerified)
-        }
-    }, [user])
-
-
 
     return (
         <>

@@ -2,8 +2,6 @@
 
 import { updatePassword } from "firebase/auth";
 import React, { useEffect, useState } from "react";
-import { errors } from "./Errors";
-import EmailField from "./EmailPassword/EmailField";
 import PasswordField from "./EmailPassword/PasswordField";
 import {
   descriptionStyle,
@@ -22,9 +20,7 @@ export default function ResetPassword({
   formDisabledStyles,
   formLabelStyles,
   formButtonStyles,
-  customErrors,
   setError,
-  setAlert,
   language,
   customText,
 }) {
@@ -32,8 +28,6 @@ export default function ResetPassword({
   const [formIsValid, setFormIsValid] = useState(false);
 
   const [email, setEmail] = useState("");
-  const [showPassHelper, setShowPassHelper] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const processNetworkError = error => {
     error = JSON.parse(JSON.stringify(error));
@@ -76,8 +70,6 @@ export default function ResetPassword({
 
   useEffect(() => {
     setFormIsValid(isPasswordValid());
-
-    setShowPassHelper(!isPasswordValid() && password.length > 0);
   }, [password]);
 
   const isPasswordValid = function () {
@@ -144,7 +136,6 @@ export default function ResetPassword({
           labelStyle={labelStyle}
           descriptionStyle={descriptionStyle}
           newPassword={true}
-          disabled={loading}
           formInputStyles={formInputStyles}
           formLabelStyles={formLabelStyles}
           setPasswordValid={setFormIsValid}
@@ -158,7 +149,7 @@ export default function ResetPassword({
       <button
         tabIndex="3"
         type="submit"
-        disabled={loading || !formIsValid}
+        disabled={!formIsValid}
         style={{
           ...buttonStyle,
           ...formButtonStyles,
@@ -171,9 +162,7 @@ export default function ResetPassword({
               }),
         }}
       >
-        {loading
-          ? translate("loading", language, customText)
-          : translate("resetPassword", language, customText)}
+        {translate("resetPassword", language, customText)}
       </button>
     </form>
   );

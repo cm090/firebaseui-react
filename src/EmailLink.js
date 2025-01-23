@@ -7,7 +7,6 @@ import {
   updateProfile,
 } from "firebase/auth";
 import React, { useState, useEffect, useRef } from "react";
-import { errors } from "./Errors";
 import { translate, translateError } from "./Languages";
 
 export default function EmailLink({
@@ -22,20 +21,17 @@ export default function EmailLink({
   auth,
   setResetPasswordOpen,
   isResetPassword,
-  displayName,
   formButtonStyles,
   formDisabledStyles,
   formInputStyles,
   formLabelStyles,
   formSmallButtonStyles,
-  customErrors,
   language,
   customText,
 }) {
   const [email, setEmail] = useState("");
   const [formIsValid, setFormIsValid] = useState(false);
   const [finishEmailSignIn, setFinishEmailSignIn] = useState(false);
-  const [name, setName] = useState("");
   const emailRef = useRef(null);
 
   const processNetworkError = error => {
@@ -60,11 +56,8 @@ export default function EmailLink({
   }, []);
 
   useEffect(() => {
-    setFormIsValid(
-      isEmailValid() &&
-        (displayName == "required" ? name.length > 0 : true),
-    );
-  }, [email, name]);
+    setFormIsValid(isEmailValid());
+  }, [email]);
 
   useEffect(() => {
     if (auth && finishEmailSignIn && !isSigningIn) {
@@ -140,9 +133,7 @@ export default function EmailLink({
       } else {
         await sendSignInLinkToEmail(auth, email, {
           handleCodeInApp: true,
-          url: `${continueUrl}/?email=${email}${
-            name.length > 0 ? "&name=" + name : ""
-          }`,
+          url: `${continueUrl}/?email=${email}`,
         }).then(() => {
           setAlert(
             `${translate(
