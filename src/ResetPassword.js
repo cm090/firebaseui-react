@@ -147,7 +147,6 @@ export default function ResetPassword({
       </div>
 
       <button
-        tabIndex="3"
         type="submit"
         disabled={!formIsValid}
         style={{

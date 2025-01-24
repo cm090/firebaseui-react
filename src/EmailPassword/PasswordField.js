@@ -160,7 +160,6 @@ export default function PasswordField({
                 ...formSmallButtonStyles,
               }}
               type="button"
-              tabIndex="4"
               onClick={async e => {
                 e.preventDefault();
                 if (!newPassword) {
@@ -219,7 +218,6 @@ export default function PasswordField({
           value={value}
           onChange={e => setValue(e.target.value)}
           onBlur={() => setIsDirty(true)}
-          tabIndex="2"
         />
       </div>
       <p style={descriptionStyle} id="password-description">

@@ -264,7 +264,6 @@ export default function EmailPassword({
       />
 
       <button
-        tabIndex="3"
         type="submit"
         disabled={loading || !formIsValid}
         style={{
