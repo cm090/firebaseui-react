@@ -1,14 +1,17 @@
 "use client";
-import React, { useState } from "react";
+import React, {
+  CSSProperties,
+  Dispatch,
+  SetStateAction,
+  useState,
+} from "react";
 import { useEffect } from "react";
 import { translate } from "../languages";
+import { FirebaseAuthUiConfig } from "../types";
 
 function passwordErrors({ password, passwordSpecs }) {
   const errors = [];
-  const minCharacters = Math.max(
-    6,
-    passwordSpecs?.minCharacters || 6,
-  );
+  const minCharacters = Math.max(6, passwordSpecs?.minCharacters || 6);
   if (password.length < minCharacters)
     errors.push(`be at least ${minCharacters} characters long`);
 
@@ -26,7 +29,7 @@ function passwordErrors({ password, passwordSpecs }) {
 
   if (
     passwordSpecs?.containsSpecialCharacter &&
-    !/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)
+    !/[!@#$%^&*()_+\-=[]{};':"\\|,.<>\/?]/.test(password)
   ) {
     errors.push("contain at least one special character");
   }
@@ -34,12 +37,8 @@ function passwordErrors({ password, passwordSpecs }) {
   return errors;
 }
 
-function formatPasswordRequirements(
-  passwordSpecs,
-  language,
-  customText,
-) {
-  let requirements = [];
+function formatPasswordRequirements(passwordSpecs, language, customText) {
+  const requirements = [];
 
   requirements.push(
     `${translate("atLeast", language, customText)} ${
@@ -47,24 +46,18 @@ function formatPasswordRequirements(
     } ${translate("characters", language, customText)}`,
   );
 
-  let additionalReqs = [];
+  const additionalReqs = [];
 
   if (passwordSpecs?.containsUppercase) {
-    additionalReqs.push(
-      translate("oneUppercase", language, customText),
-    );
+    additionalReqs.push(translate("oneUppercase", language, customText));
   }
 
   if (passwordSpecs?.containsLowercase) {
-    additionalReqs.push(
-      translate("oneLowercase", language, customText),
-    );
+    additionalReqs.push(translate("oneLowercase", language, customText));
   }
 
   if (passwordSpecs?.containsSpecialCharacter) {
-    additionalReqs.push(
-      translate("oneSpecial", language, customText),
-    );
+    additionalReqs.push(translate("oneSpecial", language, customText));
   }
 
   if (passwordSpecs?.containsNumber) {
@@ -87,13 +80,42 @@ function formatPasswordRequirements(
     );
   }
 
-  let formattedString =
+  const formattedString =
     translate("strongPasswordsHave", language, customText) +
     " " +
     requirements.join(" ") +
     ".";
 
   return formattedString;
+}
+
+interface PasswordFieldProps {
+  value: string;
+  setValue: Dispatch<SetStateAction<string>>;
+  specs: {
+    minCharacters?: number;
+    containsUppercase?: boolean;
+    containsLowercase?: boolean;
+    containsNumber?: boolean;
+    containsSpecialCharacter?: boolean;
+  };
+  validInputStyle: CSSProperties;
+  invalidInputStyle: CSSProperties;
+  labelStyle: CSSProperties;
+  descriptionStyle: CSSProperties;
+  newPassword?: boolean;
+  onResetPassword?: VoidFunction;
+  formInputStyles?: CSSProperties;
+  formLabelStyles?: CSSProperties;
+  formSmallButtonStyles?: CSSProperties;
+  setPasswordValid: Dispatch<SetStateAction<boolean>>;
+  authType: string;
+  emailValid: boolean;
+  setError: Dispatch<SetStateAction<string>>;
+  callbacks?: FirebaseAuthUiConfig["callbacks"];
+  language: FirebaseAuthUiConfig["language"];
+  customText: FirebaseAuthUiConfig["customText"];
+  disabled?: boolean;
 }
 
 export default function PasswordField({
@@ -117,18 +139,16 @@ export default function PasswordField({
   language,
   customText,
   disabled,
-}) {
+}: PasswordFieldProps) {
   const [show, setShow] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const [resettingPassword, setResettingPassword] = useState(false);
 
   const isValid =
-    passwordErrors({ password: value, passwordSpecs: specs })
-      .length === 0;
+    passwordErrors({ password: value, passwordSpecs: specs }).length === 0;
 
-  const inputStyle =
-    isDirty && !isValid ? invalidInputStyle : validInputStyle;
+  const inputStyle = isDirty && !isValid ? invalidInputStyle : validInputStyle;
 
   useEffect(() => {
     setPasswordValid(isValid);
@@ -143,10 +163,7 @@ export default function PasswordField({
           justifyContent: "space-between",
         }}
       >
-        <label
-          htmlFor="password"
-          style={{ ...labelStyle, ...formLabelStyles }}
-        >
+        <label htmlFor="password" style={{ ...labelStyle, ...formLabelStyles }}>
           {newPassword
             ? translate("newPassword", language, customText)
             : translate("password", language, customText)}
@@ -161,16 +178,12 @@ export default function PasswordField({
               }}
               type="button"
               tabIndex={4}
-              onClick={async e => {
+              onClick={async (e) => {
                 e.preventDefault();
                 if (!newPassword) {
                   if (!emailValid) {
                     setError(
-                      translate(
-                        "emailDirtyNewPassword",
-                        language,
-                        customText,
-                      ),
+                      translate("emailDirtyNewPassword", language, customText),
                     );
                   } else {
                     setResettingPassword(true);
@@ -179,7 +192,7 @@ export default function PasswordField({
                   }
                 } else {
                   if (callbacks?.signInSuccessWithAuthResult)
-                    callbacks.signInSuccessWithAuthResult();
+                    callbacks.signInSuccessWithAuthResult(null);
                 }
               }}
               // onMouseOver={(e) => (e.target.style.color = "#3b82f6")}
@@ -188,8 +201,8 @@ export default function PasswordField({
               {newPassword
                 ? translate("skip", language, customText)
                 : resettingPassword
-                ? translate("sending", language, customText)
-                : translate("sendResetLink", language, customText)}
+                  ? translate("sending", language, customText)
+                  : translate("sendResetLink", language, customText)}
             </button>
           </div>
         )}
@@ -204,20 +217,14 @@ export default function PasswordField({
           style={{ ...inputStyle, ...formInputStyles }}
           placeholder={
             newPassword
-              ? translate(
-                  "newPasswordPlaceholder",
-                  language,
-                  customText,
-                )
+              ? translate("newPasswordPlaceholder", language, customText)
               : translate("passwordPlaceholder", language, customText)
           }
-          autoComplete={
-            newPassword ? "new-password" : "current-password"
-          }
+          autoComplete={newPassword ? "new-password" : "current-password"}
           aria-describedby="password-description"
           aria-invalid={!isValid ? "true" : "false"}
           value={value}
-          onChange={e => setValue(e.target.value)}
+          onChange={(e) => setValue(e.target.value)}
           onBlur={() => setIsDirty(true)}
           tabIndex={2}
         />

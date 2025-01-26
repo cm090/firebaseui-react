@@ -6,6 +6,7 @@ export const errors = {
   "auth/invalid-verification-code": "The code provided is invalid",
   "auth/popup-closed-by-user": "The popup was closed",
   "auth/cancelled-popup-request": "The popup was closed",
-  "auth/api-key-not-valid.-please-pass-a-valid-api-key.": "The Firebase API key is not valid.",
-  "auth/invalid-credential": "Incorrect email or password"
+  "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+    "The Firebase API key is not valid.",
+  "auth/invalid-credential": "Incorrect email or password",
 };

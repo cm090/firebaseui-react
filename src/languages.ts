@@ -14,13 +14,11 @@ export const languages = {
     phoneNumber: "رقم الهاتف",
     emailLink: "رابط البريد الإلكتروني",
     signInAsGuest: "تسجيل الدخول كضيف",
-    signInWithEmailLink:
-      "تسجيل الدخول باستخدام رابط البريد الإلكتروني",
+    signInWithEmailLink: "تسجيل الدخول باستخدام رابط البريد الإلكتروني",
     sendEmailLink: "إرسال رابط بريد إلكتروني",
     cancel: "إلغاء",
     emailDirty: "يرجى إدخال عنوان بريد إلكتروني صالح.",
-    resetPasswordSent:
-      "تم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور إلى",
+    resetPasswordSent: "تم إرسال بريد إلكتروني لإعادة تعيين كلمة المرور إلى",
     resetPassword: "إعادة تعيين كلمة المرور",
     nameDirty: "يرجى إدخال اسم صالح",
     signInLinkSent: "تم إرسال رابط تسجيل الدخول إلى",
@@ -32,8 +30,7 @@ export const languages = {
     verifyEmail: "ستحتاج إلى التحقق من بريدك الإلكتروني للمتابعة",
     sendSignInText: "إرسال نص لتسجيل الدخول",
     countryCode: "رمز الدولة",
-    confirmationTextWillBeSent:
-      "سيتم إرسال نص تأكيد إلى رقم هاتفك المنتهي بـ",
+    confirmationTextWillBeSent: "سيتم إرسال نص تأكيد إلى رقم هاتفك المنتهي بـ",
     finishSigningIn: "إنهاء تسجيل الدخول",
     sendText: "إرسال نص",
     sendALinkTo: "إرسال رابط إلى",
@@ -55,18 +52,15 @@ export const languages = {
     errors: {
       "auth/invalid-login-credentials":
         "البريد الإلكتروني أو كلمة المرور غير صحيحة",
-      "auth/email-already-in-use":
-        "عنوان البريد الإلكتروني هذا مستخدم بالفعل",
+      "auth/email-already-in-use": "عنوان البريد الإلكتروني هذا مستخدم بالفعل",
       "auth/invalid-email": "يرجى تقديم عنوان بريد إلكتروني صالح",
       "auth/invalid-phone-number": "يرجى تقديم رقم هاتف صالح",
       "auth/invalid-verification-code": "الرمز المقدم غير صالح",
-      "auth/popup-closed-by-user":
-        "تم إغلاق النافذة المنبثقة بواسطة المستخدم",
+      "auth/popup-closed-by-user": "تم إغلاق النافذة المنبثقة بواسطة المستخدم",
       "auth/cancelled-popup-request": "تم إغلاق النافذة المنبثقة",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "مفتاح واجهة برمجة التطبيقات API لـ Firebase غير صالح.",
-      "auth/invalid-credential":
-        "البريد الإلكتروني أو كلمة المرور غير صحيحة",
+      "auth/invalid-credential": "البريد الإلكتروني أو كلمة المرور غير صحيحة",
     },
   },
   // German Deutsch
@@ -98,10 +92,8 @@ export const languages = {
     signingYouIn: "Sie werden angemeldet...",
     codeSent: "Ein Code wurde gesendet an",
     enterCode: "Geben Sie den Code unten ein",
-    verifyIdentity:
-      "Sie müssen Ihre Identität verifizieren, um fortzufahren",
-    verifyEmail:
-      "Sie müssen Ihre E-Mail verifizieren, um fortzufahren",
+    verifyIdentity: "Sie müssen Ihre Identität verifizieren, um fortzufahren",
+    verifyEmail: "Sie müssen Ihre E-Mail verifizieren, um fortzufahren",
     sendSignInText: "Ein Anmeldetext senden",
     countryCode: "Landesvorwahl",
     confirmationTextWillBeSent:
@@ -124,20 +116,15 @@ export const languages = {
       "Bitte geben Sie eine gültige E-Mail-Adresse ein, um Ihr Passwort zurückzusetzen",
     skip: "Überspringen",
     errors: {
-      "auth/invalid-login-credentials":
-        "Falsche E-Mail oder Passwort",
+      "auth/invalid-login-credentials": "Falsche E-Mail oder Passwort",
       "auth/email-already-in-use":
         "Diese E-Mail-Adresse wird bereits verwendet",
-      "auth/invalid-email":
-        "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+      "auth/invalid-email": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
       "auth/invalid-phone-number":
         "Bitte geben Sie eine gültige Telefonnummer ein",
-      "auth/invalid-verification-code":
-        "Der angegebene Code ist ungültig",
-      "auth/popup-closed-by-user":
-        "Das Popup wurde vom Benutzer geschlossen",
-      "auth/cancelled-popup-request":
-        "Die Popup-Anfrage wurde abgebrochen",
+      "auth/invalid-verification-code": "Der angegebene Code ist ungültig",
+      "auth/popup-closed-by-user": "Das Popup wurde vom Benutzer geschlossen",
+      "auth/cancelled-popup-request": "Die Popup-Anfrage wurde abgebrochen",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "Der Firebase-API-Schlüssel ist nicht gültig.",
       "auth/invalid-credential": "Falsche E-Mail oder Passwort",
@@ -158,8 +145,7 @@ export const languages = {
     phoneNumber: "Número de teléfono",
     emailLink: "Enlace de correo electrónico",
     signInAsGuest: "Iniciar sesión como invitado",
-    signInWithEmailLink:
-      "Iniciar sesión con enlace de correo electrónico",
+    signInWithEmailLink: "Iniciar sesión con enlace de correo electrónico",
     sendEmailLink: "Enviar enlace de correo electrónico",
     cancel: "Cancelar",
     emailDirty:
@@ -174,8 +160,7 @@ export const languages = {
     codeSent: "Se ha enviado un código a",
     enterCode: "Ingresa el código a continuación",
     verifyIdentity: "Deberás verificar tu identidad para continuar",
-    verifyEmail:
-      "Deberás verificar tu correo electrónico para continuar",
+    verifyEmail: "Deberás verificar tu correo electrónico para continuar",
     sendSignInText: "Enviar un texto de inicio de sesión",
     countryCode: "Código de país",
     confirmationTextWillBeSent:
@@ -206,16 +191,12 @@ export const languages = {
         "Por favor, proporciona una dirección de correo válido",
       "auth/invalid-phone-number":
         "Por favor, proporciona un número de teléfono válido",
-      "auth/invalid-verification-code":
-        "El código proporcionado es inválido",
-      "auth/popup-closed-by-user":
-        "El popup fue cerrado por el usuario",
-      "auth/cancelled-popup-request":
-        "La solicitud de popup fue cancelada",
+      "auth/invalid-verification-code": "El código proporcionado es inválido",
+      "auth/popup-closed-by-user": "El popup fue cerrado por el usuario",
+      "auth/cancelled-popup-request": "La solicitud de popup fue cancelada",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "La clave API de Firebase no es válida.",
-      "auth/invalid-credential":
-        "Correo electrónico o contraseña incorrectos",
+      "auth/invalid-credential": "Correo electrónico o contraseña incorrectos",
     },
   },
   // English
@@ -271,13 +252,10 @@ export const languages = {
 
     errors: {
       "auth/invalid-login-credentials": "Incorrect email or password",
-      "auth/email-already-in-use":
-        "This email address is already in use",
+      "auth/email-already-in-use": "This email address is already in use",
       "auth/invalid-email": "Please provide a valid email address",
-      "auth/invalid-phone-number":
-        "Please provide a valid phone number",
-      "auth/invalid-verification-code":
-        "The code provided is invalid",
+      "auth/invalid-phone-number": "Please provide a valid phone number",
+      "auth/invalid-verification-code": "The code provided is invalid",
       "auth/popup-closed-by-user": "The popup was closed",
       "auth/cancelled-popup-request": "The popup was closed",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
@@ -316,8 +294,7 @@ export const languages = {
     signingYouIn: "Connexion en cours...",
     codeSent: "Un code a été envoyé à",
     enterCode: "Entrez le code ci-dessous",
-    verifyIdentity:
-      "Vous devez vérifier votre identité pour continuer",
+    verifyIdentity: "Vous devez vérifier votre identité pour continuer",
     verifyEmail:
       "Vous devez vérifier votre adresse électronique pour continuer",
     sendSignInText: "Envoyer un texto de connexion",
@@ -342,18 +319,15 @@ export const languages = {
       "Veuillez entrer une adresse e-mail valide pour réinitialiser votre mot de passe",
     skip: "Passer",
     errors: {
-      "auth/invalid-login-credentials":
-        "Courriel ou mot de passe incorrect",
+      "auth/invalid-login-credentials": "Courriel ou mot de passe incorrect",
       "auth/email-already-in-use":
         "Cette adresse électronique est déjà utilisée",
-      "auth/invalid-email":
-        "Veuillez fournir une adresse électronique valide",
+      "auth/invalid-email": "Veuillez fournir une adresse électronique valide",
       "auth/invalid-phone-number":
         "Veuillez fournir un numéro de téléphone valide",
       "auth/invalid-verification-code": "Le code fourni est invalide",
       "auth/popup-closed-by-user": "La fenêtre pop-up a été fermée",
-      "auth/cancelled-popup-request":
-        "La fenêtre pop-up a été fermée",
+      "auth/cancelled-popup-request": "La fenêtre pop-up a été fermée",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "La clé API Firebase n'est pas valide.",
       "auth/invalid-credential": "Courriel ou mot de passe incorrect",
@@ -386,8 +360,7 @@ export const languages = {
     signingYouIn: "आपको साइन इन कर रहे हैं...",
     codeSent: "कोड भेजा गया है",
     enterCode: "नीचे कोड दर्ज करें",
-    verifyIdentity:
-      "जारी रखने के लिए आपको अपनी पहचान सत्यापित करनी होगी",
+    verifyIdentity: "जारी रखने के लिए आपको अपनी पहचान सत्यापित करनी होगी",
     verifyEmail: "जारी रखने के लिए आपको अपना ईमेल सत्यापित करना होगा",
     sendSignInText: "साइन इन टेक्स्ट भेजें",
     countryCode: "देश कोड",
@@ -412,16 +385,12 @@ export const languages = {
     skip: "छोड़ें",
     errors: {
       "auth/invalid-login-credentials": "ईमेल या पासवर्ड गलत है",
-      "auth/email-already-in-use":
-        "यह ईमेल पता पहले से ही इस्तेमाल में है",
+      "auth/email-already-in-use": "यह ईमेल पता पहले से ही इस्तेमाल में है",
       "auth/invalid-email": "कृपया वैध ईमेल पता प्रदान करें",
-      "auth/invalid-phone-number":
-        "कृपया एक वैध फोन नंबर प्रदान करें",
+      "auth/invalid-phone-number": "कृपया एक वैध फोन नंबर प्रदान करें",
       "auth/invalid-verification-code": "प्रदान किया गया कोड अवैध है",
-      "auth/popup-closed-by-user":
-        "पॉपअप उपयोगकर्ता द्वारा बंद किया गया था",
-      "auth/cancelled-popup-request":
-        "पॉपअप अनुरोध रद्द कर दिया गया था",
+      "auth/popup-closed-by-user": "पॉपअप उपयोगकर्ता द्वारा बंद किया गया था",
+      "auth/cancelled-popup-request": "पॉपअप अनुरोध रद्द कर दिया गया था",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "Firebase API कुंजी वैध नहीं है।",
       "auth/invalid-credential": "ईमेल या पासवर्ड गलत है",
@@ -446,18 +415,15 @@ export const languages = {
     sendEmailLink: "Enviar Link de Email",
     cancel: "Cancelar",
     emailDirty: "Por favor, insira um endereço de email válido.",
-    resetPasswordSent:
-      "Um email de redefinição de senha foi enviado para",
+    resetPasswordSent: "Um email de redefinição de senha foi enviado para",
     resetPassword: "Redefinir Senha",
     nameDirty: "Por favor, insira um nome válido",
     signInLinkSent: "Um link de entrada foi enviado para",
-    somethingWentWrong:
-      "Algo deu errado. Tente novamente mais tarde.",
+    somethingWentWrong: "Algo deu errado. Tente novamente mais tarde.",
     signingYouIn: "Entrando...",
     codeSent: "Um código foi enviado para",
     enterCode: "Insira o código abaixo",
-    verifyIdentity:
-      "Você precisará verificar sua identidade para continuar",
+    verifyIdentity: "Você precisará verificar sua identidade para continuar",
     verifyEmail: "Você precisará verificar seu email para continuar",
     sendSignInText: "Enviar um texto de entrada",
     countryCode: "Código do País",
@@ -482,17 +448,13 @@ export const languages = {
     skip: "Pular",
     errors: {
       "auth/invalid-login-credentials": "Email ou senha incorretos",
-      "auth/email-already-in-use":
-        "Este endereço de email já está em uso",
-      "auth/invalid-email":
-        "Por favor, forneça um endereço de email válido",
+      "auth/email-already-in-use": "Este endereço de email já está em uso",
+      "auth/invalid-email": "Por favor, forneça um endereço de email válido",
       "auth/invalid-phone-number":
         "Por favor, forneça um número de telefone válido",
-      "auth/invalid-verification-code":
-        "O código fornecido é inválido",
+      "auth/invalid-verification-code": "O código fornecido é inválido",
       "auth/popup-closed-by-user": "O popup foi fechado pelo usuário",
-      "auth/cancelled-popup-request":
-        "O pedido de popup foi cancelado",
+      "auth/cancelled-popup-request": "O pedido de popup foi cancelado",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "A chave de API do Firebase não é válida.",
       "auth/invalid-credential": "Email ou senha incorretos",
@@ -514,12 +476,10 @@ export const languages = {
     phoneNumber: "Номер телефона",
     emailLink: "Ссылка электронной почты",
     signInAsGuest: "Войти как гость",
-    signInWithEmailLink:
-      "Войти с помощью ссылки на электронную почту",
+    signInWithEmailLink: "Войти с помощью ссылки на электронную почту",
     sendEmailLink: "Отправить ссылку на электронную почту",
     cancel: "Отмена",
-    emailDirty:
-      "Пожалуйста, введите действительный адрес электронной почты.",
+    emailDirty: "Пожалуйста, введите действительный адрес электронной почты.",
     resetPasswordSent: "Ссылка для сброса пароля была отправлена на",
     resetPassword: "Сбросить пароль",
     nameDirty: "Пожалуйста, введите действительное имя",
@@ -527,8 +487,7 @@ export const languages = {
     signingYouIn: "Входим...",
     codeSent: "Код был отправлен на",
     enterCode: "Введите код ниже",
-    verifyIdentity:
-      "Вам нужно подтвердить свою личность, чтобы продолжить",
+    verifyIdentity: "Вам нужно подтвердить свою личность, чтобы продолжить",
     verifyEmail:
       "Вам нужно подтвердить свою электронную почту, чтобы продолжить",
     sendSignInText: "Отправить текст для входа",
@@ -562,16 +521,13 @@ export const languages = {
         "Пожалуйста, укажите действительный адрес электронной почты",
       "auth/invalid-phone-number":
         "Пожалуйста, укажите действительный номер телефона",
-      "auth/invalid-verification-code":
-        "Указанный код недействителен",
+      "auth/invalid-verification-code": "Указанный код недействителен",
       "auth/popup-closed-by-user":
         "Всплывающее окно было закрыто пользователем",
-      "auth/cancelled-popup-request":
-        "Запрос во всплывающем окне был отменен",
+      "auth/cancelled-popup-request": "Запрос во всплывающем окне был отменен",
       "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
         "Ключ API Firebase недействителен.",
-      "auth/invalid-credential":
-        "Неверный адрес электронной почты или пароль",
+      "auth/invalid-credential": "Неверный адрес электронной почты или пароль",
     },
   },
   // Chinese 中文
@@ -605,8 +561,7 @@ export const languages = {
     verifyEmail: "您需要验证您的电子邮件以继续",
     sendSignInText: "发送登录短信",
     countryCode: "国家代码",
-    confirmationTextWillBeSent:
-      "确认短信将发送到您的电话号码，结尾为",
+    confirmationTextWillBeSent: "确认短信将发送到您的电话号码，结尾为",
     finishSigningIn: "完成登录",
     sendText: "发送短信",
     sendALinkTo: "发送链接到",
@@ -642,19 +597,13 @@ export const languages = {
 export const translate = (key, language, customTextMap = null) => {
   // Check if customTextMap is not null and key exists, otherwise proceed
   return (
-    customTextMap?.[key] ??
-    languages[language]?.[key] ??
-    languages["en"][key]
+    customTextMap?.[key] ?? languages[language]?.[key] ?? languages["en"][key]
   );
 };
 
-export const translateError = (
-  key,
-  language,
-  customTextMap = null,
-) => {
+export const translateError = (key, language, customTextMap = null) => {
   // Use optional chaining and nullish coalescing to gracefully handle null or undefined values
-  let rest =
+  const rest =
     customTextMap?.errors?.[key] ??
     languages[language]?.errors?.[key] ??
     languages[language]?.["somethingWentWrong"] ??

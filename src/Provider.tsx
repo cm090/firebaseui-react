@@ -6,6 +6,7 @@ import {
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
+  MultiFactorResolver,
   OAuthProvider,
   TwitterAuthProvider,
   browserPopupRedirectResolver,
@@ -16,8 +17,6 @@ import {
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
 import EmailPassword from "./EmailPassword/EmailPassword";
-import PhoneNumber from "./PhoneNumber";
-import { errors } from "./errors";
 import { translate, translateError } from "./languages";
 import { FirebaseAuthUiConfig, SignInOption } from "./types";
 
@@ -33,7 +32,7 @@ interface ProviderProps extends SignInOption {
   setError: Dispatch<SetStateAction<string>>;
   setVerify: Dispatch<SetStateAction<boolean>>;
   setMfaSignIn: Dispatch<SetStateAction<boolean>>;
-  setMfaResolver: Dispatch<SetStateAction<any>>;
+  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
   formDisabledStyles: FirebaseAuthUiConfig["formDisabledStyles"];
   formButtonStyles: FirebaseAuthUiConfig["formButtonStyles"];
   formInputStyles: FirebaseAuthUiConfig["formInputStyles"];
@@ -61,7 +60,6 @@ export default function Provider({
   setAlert,
   setError,
   passwordSpecs,
-  setVerify,
   setMfaSignIn,
   setMfaResolver,
   displayName,
@@ -82,9 +80,8 @@ export default function Provider({
     } else if (providerId == "phonenumber") {
       providerName = "Phone Number";
     } else {
-      let match = providerId.match(/^([^.]+)/);
-      providerName =
-        match[1].charAt(0).toUpperCase() + match[1].slice(1);
+      const match = providerId.match(/^([^.]+)/);
+      providerName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
     }
   }
 
@@ -93,11 +90,7 @@ export default function Provider({
   }
 
   if (providerId == "emaillink" && !fullLabel) {
-    fullLabel = translate(
-      "signInWithEmailLink",
-      language,
-      customText,
-    );
+    fullLabel = translate("signInWithEmailLink", language, customText);
   }
 
   const providerMap = {
@@ -120,7 +113,7 @@ export default function Provider({
   }
 
   if (provider && scopes) {
-    scopes.forEach(scope => {
+    scopes.forEach((scope) => {
       provider.addScope(scope);
     });
   }
@@ -139,18 +132,10 @@ export default function Provider({
         providerId == "anonymous"
           ? signInAnonymously(auth)
           : signInFlow == "redirect"
-            ? signInWithRedirect(
-              auth,
-              provider,
-              browserPopupRedirectResolver,
-            )
-            : signInWithPopup(
-              auth,
-              provider,
-              browserPopupRedirectResolver,
-            );
+            ? signInWithRedirect(auth, provider, browserPopupRedirectResolver)
+            : signInWithPopup(auth, provider, browserPopupRedirectResolver);
       try {
-        await flowFunction().then(user => {
+        await flowFunction().then((user) => {
           callbacks?.signInSuccessWithAuthResult(user);
         });
       } catch (error) {
@@ -168,8 +153,7 @@ export default function Provider({
     }
   };
 
-  const styles =
-    providerStyles[providerId] || providerStyles["default"];
+  const styles = providerStyles[providerId] || providerStyles["default"];
   const buttonStyles = {
     ...styles?.buttonStyles,
     ...(customStyles || null),
@@ -186,7 +170,6 @@ export default function Provider({
       passwordSpecs={passwordSpecs}
       setSendSMS={setSendSMS}
       setMfaSignIn={setMfaSignIn}
-      setVerify={setVerify}
       setMfaResolver={setMfaResolver}
       displayName={displayName}
       fullLabel={fullLabel}
@@ -222,11 +205,7 @@ export default function Provider({
       <span style={{ fontSize: "0.875rem", fontWeight: "500" }}>
         {fullLabel
           ? fullLabel
-          : `${translate(
-            "signInWith",
-            language,
-            customText,
-          )} ${providerName}`}
+          : `${translate("signInWith", language, customText)} ${providerName}`}
       </span>
     </button>
   );

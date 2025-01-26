@@ -1,14 +1,43 @@
 "use client";
 import {
+  Auth,
   getMultiFactorResolver,
   isSignInWithEmailLink,
+  MultiFactorResolver,
   sendSignInLinkToEmail,
   signInWithEmailLink,
   updateProfile,
 } from "firebase/auth";
-import React, { useState, useEffect, useRef } from "react";
-import { errors } from "./errors";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  Dispatch,
+  SetStateAction,
+} from "react";
 import { translate, translateError } from "./languages";
+import { FirebaseAuthUiConfig } from "./types";
+
+interface EmailLinkProps {
+  setEmailLinkOpen: Dispatch<SetStateAction<boolean>>;
+  continueUrl: string;
+  callbacks: FirebaseAuthUiConfig["callbacks"];
+  setAlert: Dispatch<SetStateAction<string>>;
+  setError: Dispatch<SetStateAction<string>>;
+  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
+  setSendSMS: Dispatch<SetStateAction<boolean>>;
+  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
+  auth: Auth;
+  displayName: string;
+  formButtonStyles: React.CSSProperties;
+  formDisabledStyles: React.CSSProperties;
+  formInputStyles: React.CSSProperties;
+  formLabelStyles: React.CSSProperties;
+  formSmallButtonStyles: React.CSSProperties;
+  customErrors: FirebaseAuthUiConfig["customErrors"];
+  language: FirebaseAuthUiConfig["language"];
+  customText: FirebaseAuthUiConfig["customText"];
+}
 
 export default function EmailLink({
   setEmailLinkOpen,
@@ -20,8 +49,6 @@ export default function EmailLink({
   setSendSMS,
   setMfaSignIn,
   auth,
-  setResetPasswordOpen,
-  isResetPassword,
   displayName,
   formButtonStyles,
   formDisabledStyles,
@@ -31,22 +58,22 @@ export default function EmailLink({
   customErrors,
   language,
   customText,
-}) {
+}: EmailLinkProps) {
   const [email, setEmail] = useState("");
   const [formIsValid, setFormIsValid] = useState(false);
   const [finishEmailSignIn, setFinishEmailSignIn] = useState(false);
   const [name, setName] = useState("");
   const emailRef = useRef(null);
 
-  const processNetworkError = error => {
+  const processNetworkError = (error) => {
     error = JSON.parse(JSON.stringify(error));
     if (
       error.code === 400 ||
       (error.code === "auth/network-request-failed" &&
         error?.customData?.message)
     ) {
-      let message = error.customData.message;
-      let sliced = message.slice(32, message.length - 2);
+      const message = error.customData.message;
+      const sliced = message.slice(32, message.length - 2);
       error.code = sliced;
     }
 
@@ -54,15 +81,12 @@ export default function EmailLink({
   };
 
   useEffect(() => {
-    setFinishEmailSignIn(
-      isSignInWithEmailLink(auth, window.location.href),
-    );
+    setFinishEmailSignIn(isSignInWithEmailLink(auth, window.location.href));
   }, []);
 
   useEffect(() => {
     setFormIsValid(
-      isEmailValid() &&
-        (displayName == "required" ? name.length > 0 : true),
+      isEmailValid() && (displayName == "required" ? name.length > 0 : true),
     );
   }, [email, name]);
 
@@ -79,27 +103,20 @@ export default function EmailLink({
       const queryName = queryParams.get("name");
 
       try {
-        await signInWithEmailLink(
-          auth,
-          queryEmail,
-          window.location.href,
-        ).then(user => {
-          if (isResetPassword) {
-            setResetPasswordOpen(true);
-            setEmailLinkOpen(false);
-          } else if (queryName) {
-            updateProfile(user.user, { displayName: queryName }).then(
-              () => {
+        await signInWithEmailLink(auth, queryEmail, window.location.href).then(
+          (user) => {
+            if (queryName) {
+              updateProfile(user.user, { displayName: queryName }).then(() => {
                 if (callbacks?.signInSuccessWithAuthResult)
                   callbacks.signInSuccessWithAuthResult(user);
-              },
-            );
-          } else if (callbacks?.signInSuccessWithAuthResult)
-            callbacks.signInSuccessWithAuthResult(user);
-          setEmailLinkOpen(false);
-        });
-      } catch (error) {
-        error = processNetworkError(error);
+              });
+            } else if (callbacks?.signInSuccessWithAuthResult)
+              callbacks.signInSuccessWithAuthResult(user);
+            setEmailLinkOpen(false);
+          },
+        );
+      } catch (err) {
+        const error = processNetworkError(err);
         if (error.code === "auth/multi-factor-auth-required") {
           setMfaResolver(getMultiFactorResolver(auth, error));
           setMfaSignIn(true);
@@ -127,15 +144,13 @@ export default function EmailLink({
     e.preventDefault();
     try {
       if (finishEmailSignIn) {
-        await signInWithEmailLink(
-          auth,
-          email,
-          window.location.href,
-        ).then(user => {
-          if (callbacks?.signInSuccessWithAuthResult)
-            callbacks.signInSuccessWithAuthResult(user);
-          setEmailLinkOpen(false);
-        });
+        await signInWithEmailLink(auth, email, window.location.href).then(
+          (user) => {
+            if (callbacks?.signInSuccessWithAuthResult)
+              callbacks.signInSuccessWithAuthResult(user);
+            setEmailLinkOpen(false);
+          },
+        );
       } else {
         await sendSignInLinkToEmail(auth, email, {
           handleCodeInApp: true,
@@ -144,24 +159,15 @@ export default function EmailLink({
           }`,
         }).then(() => {
           setAlert(
-            `${translate(
-              "signInLinkSent",
-              language,
-              customText,
-            )} ${email}`,
+            `${translate("signInLinkSent", language, customText)} ${email}`,
           );
         });
       }
-    } catch (error) {
-      error = processNetworkError(error);
-      if (
-        finishEmailSignIn &&
-        typeof callbacks?.signInFailure === "function"
-      )
+    } catch (err) {
+      const error = processNetworkError(err);
+      if (finishEmailSignIn && typeof callbacks?.signInFailure === "function")
         callbacks?.signInFailure(error);
-      setError(
-        setError(translateError(error.code, language, customText)),
-      );
+      setError(translateError(error.code, language, customText));
     }
   };
 
@@ -239,7 +245,7 @@ export default function EmailLink({
               required
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               style={{
                 border: "1px solid #e2e8f0", // gray-300
                 borderRadius: "0.375rem",
@@ -275,7 +281,7 @@ export default function EmailLink({
               ...formButtonStyles,
               ...(formIsValid ? {} : formDisabledStyles),
             }}
-            onClick={e => submit(e)}
+            onClick={(e) => submit(e)}
           >
             {finishEmailSignIn
               ? translate("finishSigningIn", language, customText)

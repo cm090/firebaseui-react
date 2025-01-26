@@ -1,7 +1,9 @@
 "use client";
 
 import {
+  Auth,
   ConfirmationResult,
+  MultiFactorResolver,
   PhoneAuthProvider,
   PhoneMultiFactorGenerator,
   RecaptchaVerifier,
@@ -9,9 +11,37 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
-import React, { useEffect, useRef, useState } from "react";
-import { errors } from "./errors";
+import React, {
+  CSSProperties,
+  Dispatch,
+  SetStateAction,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { translate, translateError } from "./languages";
+import { FirebaseAuthUiConfig } from "./types";
+
+interface PhoneNumberProps {
+  setSendSMS: Dispatch<SetStateAction<boolean>>;
+  setAlert: Dispatch<SetStateAction<string>>;
+  setError: Dispatch<SetStateAction<string>>;
+  callbacks: FirebaseAuthUiConfig["callbacks"];
+  mfaSignIn: boolean;
+  mfaResolver: MultiFactorResolver;
+  auth: Auth;
+  displayName: string;
+  formButtonStyles: CSSProperties;
+  formDisabledStyles: CSSProperties;
+  formInputStyles: CSSProperties;
+  formLabelStyles: CSSProperties;
+  formSmallButtonStyles: CSSProperties;
+  customErrors: FirebaseAuthUiConfig["customErrors"];
+  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
+  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
+  language: FirebaseAuthUiConfig["language"];
+  customText: FirebaseAuthUiConfig["customText"];
+}
 
 export default function PhoneNumber({
   setSendSMS,
@@ -21,8 +51,6 @@ export default function PhoneNumber({
   mfaSignIn,
   mfaResolver,
   auth,
-  isResetPassword,
-  setResetPasswordOpen,
   displayName,
   formButtonStyles,
   formDisabledStyles,
@@ -34,10 +62,9 @@ export default function PhoneNumber({
   setMfaSignIn,
   language,
   customText,
-}) {
+}: PhoneNumberProps) {
   //TODO: custom styles here too
-  const styles =
-    providerStyles["phonenumber"] || providerStyles["default"];
+  const styles = providerStyles["phonenumber"] || providerStyles["default"];
   const [phoneNumber, setPhoneNumber] = useState("");
   //TODO phone number validity
   const [phoneNumberValid, setPhoneNumberValid] = useState(false);
@@ -48,15 +75,15 @@ export default function PhoneNumber({
   const [name, setName] = useState("");
   const [selectedHint, setSelectedHint] = useState(0);
 
-  const processNetworkError = error => {
+  const processNetworkError = (error) => {
     error = JSON.parse(JSON.stringify(error));
     if (
       error.code === 400 ||
       (error.code === "auth/network-request-failed" &&
         error?.customData?.message)
     ) {
-      let message = error.customData.message;
-      let sliced = message.slice(32, message.length - 2);
+      const message = error.customData.message;
+      const sliced = message.slice(32, message.length - 2);
       error.code = sliced;
     }
 
@@ -71,19 +98,15 @@ export default function PhoneNumber({
       enterCode || mfaSignIn
         ? true
         : /^\d{3}-\d{3}-\d{4}$/.test(phoneNumber) &&
-        (displayName == "required" ? name.length > 0 : true),
+            (displayName == "required" ? name.length > 0 : true),
     );
   }, [phoneNumber, name]);
 
   const sendMfaText = function () {
     if (!recaptchaVerifier) {
-      recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        {
-          size: "invisible",
-        },
-      );
+      recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+      });
     }
     if (mfaSignIn && mfaResolver && recaptchaVerifier) {
       const phoneInfoOptions = {
@@ -93,18 +116,18 @@ export default function PhoneNumber({
       try {
         phoneAuthProvider
           .verifyPhoneNumber(phoneInfoOptions, recaptchaVerifier)
-          .then(vId => {
+          .then((vId) => {
             setVerificationId(vId);
             setEnterCode(true);
           });
       } catch (error) {
+        console.error(error);
         recaptchaVerifier.clear();
       }
     }
   };
 
-  const inputRefs = Array(6)
-    .fill((() => useRef(null))());
+  const inputRefs = Array(6).fill((() => useRef(null))());
 
   const handleCodeChange = (value, index) => {
     if (value !== "" && !/\d/.test(value)) return;
@@ -123,10 +146,10 @@ export default function PhoneNumber({
     }
   };
 
-  const handlePhoneInput = value => {
+  const handlePhoneInput = (value) => {
     let cleaned = value.replace(/\D/g, "");
 
-    let parts = [];
+    const parts = [];
     if (cleaned.length > 3) {
       parts.push(cleaned.substring(0, 3));
       cleaned = cleaned.substring(3);
@@ -150,13 +173,9 @@ export default function PhoneNumber({
   const sendCode = async function () {
     try {
       if (!recaptchaVerifier) {
-        recaptchaVerifier = new RecaptchaVerifier(
-          auth,
-          "recaptcha-container",
-          {
-            size: "invisible",
-          },
-        );
+        recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+          size: "invisible",
+        });
       }
       if (
         !phoneNumber ||
@@ -170,28 +189,29 @@ export default function PhoneNumber({
         auth,
         formattedNumber,
         recaptchaVerifier,
-      ).then(confirmationResult => {
+      ).then((confirmationResult) => {
         setAlert(
-          `${translate(
-            "codeSent",
-            language,
-            customText,
-          )} ${phoneNumber}.`,
+          `${translate("codeSent", language, customText)} ${phoneNumber}.`,
         );
-        (window as typeof window & { confirmationResult: ConfirmationResult }).confirmationResult = confirmationResult;
+        (
+          window as typeof window & { confirmationResult: ConfirmationResult }
+        ).confirmationResult = confirmationResult;
         setEnterCode(true);
       });
     } catch (error) {
-      error = processNetworkError(error);
-      setError(translateError(error.code, language, customText));
+      setError(
+        translateError(processNetworkError(error).code, language, customText),
+      );
     }
   };
 
   const signInWithCode = async function () {
     try {
-      let formattedCode = code.join("");
+      const formattedCode = code.join("");
 
-      await (window as typeof window & { confirmationResult: ConfirmationResult }).confirmationResult
+      await (
+        window as typeof window & { confirmationResult: ConfirmationResult }
+      ).confirmationResult
         .confirm(formattedCode)
         .then(() => {
           //TODO restructure to get user credential
@@ -200,8 +220,8 @@ export default function PhoneNumber({
           }
           setSendSMS(false);
         });
-    } catch (error) {
-      error = processNetworkError(error);
+    } catch (err) {
+      const error = processNetworkError(err);
       setError(translateError(error.code, language, customText));
       if (typeof callbacks?.signInFailure === "function")
         callbacks?.signInFailure(error);
@@ -211,31 +231,20 @@ export default function PhoneNumber({
   const handleButtonPress = function () {
     //TODO verify code!
     if (mfaSignIn && enterCode) {
-      let formattedCode = code.join("");
-      const cred = PhoneAuthProvider.credential(
-        verificationId,
-        formattedCode,
-      );
-      const multiFactorAssertion =
-        PhoneMultiFactorGenerator.assertion(cred);
+      const formattedCode = code.join("");
+      const cred = PhoneAuthProvider.credential(verificationId, formattedCode);
+      const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
       try {
-        mfaResolver
-          .resolveSignIn(multiFactorAssertion)
-          .then(userCred => {
-            if (isResetPassword) {
-              setResetPasswordOpen(true);
-              setSendSMS(false);
-              setMfaResolver(null);
-              setMfaSignIn(false);
-            } else if (callbacks?.signInSuccessWithAuthResult) {
-              setSendSMS(false);
-              setMfaResolver(null);
-              setMfaSignIn(false);
-              callbacks.signInSuccessWithAuthResult(userCred.user);
-            }
-          });
-      } catch (error) {
-        error = processNetworkError(error);
+        mfaResolver.resolveSignIn(multiFactorAssertion).then((userCred) => {
+          if (callbacks?.signInSuccessWithAuthResult) {
+            setSendSMS(false);
+            setMfaResolver(null);
+            setMfaSignIn(false);
+            callbacks.signInSuccessWithAuthResult(userCred.user);
+          }
+        });
+      } catch (err) {
+        const error = processNetworkError(err);
         setError(translateError(error.code, language, customText));
         if (typeof callbacks?.signInFailure === "function")
           callbacks?.signInFailure(error);
@@ -327,7 +336,7 @@ export default function PhoneNumber({
                 width: "100%",
               }}
               value={countryCode}
-              onChange={e => setCountryCode(e.target.value)}
+              onChange={(e) => setCountryCode(e.target.value)}
             >
               <option value="+1">🇺🇸 United States +1</option>
               <option value="+358">🇦🇽 Aland Islands +358</option>
@@ -343,9 +352,7 @@ export default function PhoneNumber({
               <option value="+32">🇧🇪 Belgium +32</option>
               <option value="+229">🇧🇯 Benin +229</option>
               <option value="+591">🇧🇴 Bolivia +591</option>
-              <option value="+387">
-                🇧🇦 Bosnia and Herzegovina +387
-              </option>
+              <option value="+387">🇧🇦 Bosnia and Herzegovina +387</option>
               <option value="+673">🇧🇳 Brunei +673</option>
               <option value="+359">🇧🇬 Bulgaria +359</option>
               <option value="+257">🇧🇮 Burundi +257</option>
@@ -365,9 +372,7 @@ export default function PhoneNumber({
               <option value="+593">🇪🇨 Ecuador +593</option>
               <option value="+240">🇬🇶 Equatorial Guinea +240</option>
               <option value="+372">🇪🇪 Estonia +372</option>
-              <option value="+358">
-                🇫🇮 Finland/Aland Islands +358
-              </option>
+              <option value="+358">🇫🇮 Finland/Aland Islands +358</option>
               <option value="+33">🇫🇷 France +33</option>
               <option value="+220">🇬🇲 Gambia +220</option>
               <option value="+995">🇬🇪 Georgia +995</option>
@@ -409,9 +414,7 @@ export default function PhoneNumber({
               <option value="+258">🇲🇿 Mozambique +258</option>
               <option value="+264">🇳🇦 Namibia +264</option>
               <option value="+31">🇳🇱 Netherlands +31</option>
-              <option value="+599">
-                🇳🇱 Netherlands Antilles +599
-              </option>
+              <option value="+599">🇳🇱 Netherlands Antilles +599</option>
               <option value="+64">🇳🇿 New Zealand +64</option>
               <option value="+234">🇳🇬 Nigeria +234</option>
               <option value="+47">🇳🇴 Norway +47</option>
@@ -438,16 +441,10 @@ export default function PhoneNumber({
               <option value="+886">🇹🇼 Taiwan +886</option>
               <option value="+255">🇹🇿 Tanzania +255</option>
               <option value="+228">🇹🇬 Togo +228</option>
-              <option value="+1868">
-                🇹🇹 Trinidad and Tobago +1868
-              </option>
-              <option value="+1649">
-                🇹🇨 Turks and Caicos Islands +1649
-              </option>
+              <option value="+1868">🇹🇹 Trinidad and Tobago +1868</option>
+              <option value="+1649">🇹🇨 Turks and Caicos Islands +1649</option>
               <option value="+256">🇺🇬 Uganda +256</option>
-              <option value="+971">
-                🇦🇪 United Arab Emirates +971
-              </option>
+              <option value="+971">🇦🇪 United Arab Emirates +971</option>
               <option value="+44">🇬🇧 United Kingdom +44</option>
               <option value="+1">🇺🇸 United States +1</option>
               <option value="+998">🇺🇿 Uzbekistan +998</option>
@@ -475,7 +472,7 @@ export default function PhoneNumber({
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <input
                 value={phoneNumber}
-                onChange={e =>
+                onChange={(e) =>
                   setPhoneNumber(handlePhoneInput(e.target.value))
                 }
                 placeholder="555-555-5555"
@@ -505,10 +502,7 @@ export default function PhoneNumber({
                     <span style={{ color: "#FF0000" }}> *</span>
                   </label>
                 ) : (
-                  <label
-                    style={{ ...formLabelStyles }}
-                    htmlFor="name"
-                  >
+                  <label style={{ ...formLabelStyles }} htmlFor="name">
                     {translate("name", language, customText)}
                   </label>
                 )}
@@ -521,7 +515,7 @@ export default function PhoneNumber({
                     language,
                     customText,
                   )}
-                  onChange={e => setName(e.target.value)}
+                  onChange={(e) => setName(e.target.value)}
                   style={{
                     border: "1px solid #e2e8f0", // gray-300
                     borderRadius: "0.375rem",
@@ -541,7 +535,7 @@ export default function PhoneNumber({
         <div>
           <select
             value={selectedHint}
-            onChange={e => setSelectedHint(parseInt(e.target.value))}
+            onChange={(e) => setSelectedHint(parseInt(e.target.value))}
             style={{
               border: "1px solid #e2e8f0", // gray-300
               borderRadius: "0.375rem",
@@ -551,17 +545,13 @@ export default function PhoneNumber({
           >
             {mfaResolver?.hints.map((hint, index) => (
               <option value={index} key={index}>
-                xxx-xxx-{hint.phoneNumber?.slice(-4)}
+                xxx-xxx-{hint.displayName?.slice(-4)}
               </option>
             ))}
           </select>
           <p>
-            {translate(
-              "confirmationTextWillBeSent",
-              language,
-              customText,
-            )}{" "}
-            {mfaResolver?.hints[selectedHint]?.phoneNumber?.slice(-4)}
+            {translate("confirmationTextWillBeSent", language, customText)}{" "}
+            {mfaResolver?.hints[selectedHint]?.displayName?.slice(-4)}
           </p>
         </div>
       )}
@@ -596,10 +586,8 @@ export default function PhoneNumber({
                 type="text"
                 maxLength={1}
                 value={digit}
-                onChange={e =>
-                  handleCodeChange(e.target.value, index)
-                }
-                onKeyDown={e => handleBackspace(e, index)}
+                onChange={(e) => handleCodeChange(e.target.value, index)}
+                onKeyDown={(e) => handleBackspace(e, index)}
                 style={{
                   border: "1px solid #e2e8f0", // gray-300
                   borderRadius: "0.375rem",
