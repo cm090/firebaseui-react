@@ -1,28 +1,22 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
 import Provider from "./Provider";
-import { providerStyles } from "./providerStyles";
 import PhoneNumber from "./PhoneNumber";
 import EmailLink from "./EmailLink";
-import { isSignInWithEmailLink, onAuthStateChanged } from "firebase/auth";
+import { Auth, isSignInWithEmailLink, onAuthStateChanged } from "firebase/auth";
 import VerifyEmail from "./VerifyEmail";
-import ResetPassword from "./ResetPassword";
+import type { FirebaseAuthUiConfig } from "./types";
+import { defaultConfig } from "./defaults";
 
-export default function FirebaseUI({
-  auth,
-  url,
-  config = { signInOptions: [{ provider: "emailpassword" }] },
-}) {
-  if (!auth) {
-    throw new Error("FirebaseUI requires 'auth' prop.");
-  }
+interface FirebaseAuthUiProps {
+  auth: Auth;
+  config?: FirebaseAuthUiConfig;
+}
 
+export default function FirebaseAuthUi({ auth, config = defaultConfig }: FirebaseAuthUiProps) {
   const [emailLinkOpen, setEmailLinkOpen] = useState(false);
-  const [queryParams, setQueryParams] = useState(null)
   const [sendSMS, setSendSMS] = useState(false);
   const [verify, setVerify] = useState(false);
-  const [isResetPassword, setIsResetPassword] = useState(false) // only true when the user logs in from the reset password link
-  const [resetPasswordOpen, setResetPasswordOpen] = useState(false) // controls whether the reset password form is open
   const [mfaSignIn, setMfaSignIn] = useState(false);
   const [mfaResolver, setMfaResolver] = useState();
   const [showComponent, setShowComponent] = useState(false);
@@ -33,10 +27,7 @@ export default function FirebaseUI({
 
   useEffect(() => {
     //initialize values based on query params
-    const params = new URLSearchParams(window.location.search)
-    setQueryParams(params)
     setEmailLinkOpen(isSignInWithEmailLink(auth, window.location.href))
-    setIsResetPassword(params.get('resetPassword') === "true")
     setShowComponent(true)
   }, [])
 
@@ -87,39 +78,22 @@ export default function FirebaseUI({
           ...config?.containerStyles
         }}
       >
-        {resetPasswordOpen &&
-          <ResetPassword
-            callbacks={config?.callbacks}
-            setAlert={setAlert}
-            setError={setError}
-            auth={auth}
-            passwordSpecs={config?.passwordSpecs}
-            formButtonStyles={config?.formButtonStyles}
-            formDisabledStyles={config?.formDisabledStyles}
-            formInputStyles={config?.formInputStyles}
-            formLabelStyles={config?.formLabelStyles}
-            formSmallButtonStyles={config?.formSmallButtonStyles}
-            customErrors={config?.customErrors}
-            language={config?.language}
-            customText={config?.customText}
-          />}
         {!sendSMS &&
-          !emailLinkOpen && !verify && !resetPasswordOpen &&
+          !emailLinkOpen && !verify &&
           config?.signInOptions?.map((provider, i) => {
             if (typeof provider == "string") {
               return (
                 <Provider
                   key={i}
                   auth={auth}
-                  providerId={provider}
+                  provider={provider}
                   callbacks={config?.callbacks}
-                  continueUrl={url || config?.continueUrl}
+                  continueUrl={config?.continueUrl}
                   displayName={config?.displayName}
                   setSendSMS={setSendSMS}
                   setEmailLinkOpen={setEmailLinkOpen}
                   setAlert={setAlert}
                   setError={setError}
-                  user={user}
                   setVerify={setVerify}
                   setMfaSignIn={setMfaSignIn}
                   setMfaResolver={setMfaResolver}
@@ -139,17 +113,16 @@ export default function FirebaseUI({
                 <Provider
                   key={i}
                   auth={auth}
-                  providerId={provider?.provider}
+                  provider={provider?.provider}
                   {...provider}
                   passwordSpecs={config?.passwordSpecs}
                   callbacks={config?.callbacks}
-                  continueUrl={url || config?.continueUrl}
+                  continueUrl={config?.continueUrl}
                   displayName={config?.displayName}
                   setSendSMS={setSendSMS}
                   setEmailLinkOpen={setEmailLinkOpen}
                   setAlert={setAlert}
                   setError={setError}
-                  user={user}
                   setVerify={setVerify}
                   setMfaSignIn={setMfaSignIn}
                   setMfaResolver={setMfaResolver}
@@ -172,11 +145,8 @@ export default function FirebaseUI({
             setSendSMS={setSendSMS}
             setAlert={setAlert}
             setError={setError}
-            user={user}
             mfaSignIn={mfaSignIn}
             mfaResolver={mfaResolver}
-            isResetPassword={isResetPassword}
-            setResetPasswordOpen={setResetPasswordOpen}
             displayName={config?.displayName}
             formButtonStyles={config?.formButtonStyles}
             formDisabledStyles={config?.formDisabledStyles}
@@ -204,15 +174,12 @@ export default function FirebaseUI({
           <EmailLink
             auth={auth}
             setEmailLinkOpen={setEmailLinkOpen}
-            continueUrl={url || config?.continueUrl}
+            continueUrl={config?.continueUrl}
             setAlert={setAlert}
             setError={setError}
-            user={user}
             setMfaSignIn={setMfaSignIn}
             setMfaResolver={setMfaResolver}
             setSendSMS={setSendSMS}
-            isResetPassword={isResetPassword}
-            setResetPasswordOpen={setResetPasswordOpen}
             displayName={config?.displayName}
             formButtonStyles={config?.formButtonStyles}
             formDisabledStyles={config?.formDisabledStyles}

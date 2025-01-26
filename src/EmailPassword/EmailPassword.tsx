@@ -13,7 +13,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { useState, useRef, useEffect } from "react";
-import { errors } from "../Errors";
+import { errors } from "../errors";
 
 import EmailField from "./EmailField";
 import PasswordField from "./PasswordField";
@@ -27,7 +27,7 @@ import {
   cancelButtonStyle,
 } from "./defaultStyles";
 import NameField from "./NameField";
-import { translate, translateError } from "../Languages";
+import { translate, translateError } from "../languages";
 
 export default function EmailPassword({
   auth,
@@ -268,10 +268,11 @@ export default function EmailPassword({
         setError={setError}
         language={language}
         customText={customText}
+        callbacks={callbacks}
       />
 
       <button
-        tabIndex="3"
+        tabIndex={3}
         type="submit"
         disabled={loading || !formIsValid}
         style={{
@@ -291,14 +292,6 @@ export default function EmailPassword({
           : fullLabel ||
             translate("loginButton", language, customText)}
       </button>
-      {false && (
-        <button
-          style={{ ...cancelButtonStyle, ...formSmallButtonStyles }}
-          onClick={() => setEmailExists(null)}
-        >
-          {translate("cancel", language, customText)}
-        </button>
-      )}
     </form>
   );
 }

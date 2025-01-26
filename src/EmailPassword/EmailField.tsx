@@ -1,7 +1,7 @@
 "use client"
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { translate } from "../Languages";
+import { translate } from "../languages";
 
 export default function EmailField({
   value,
@@ -46,7 +46,7 @@ export default function EmailField({
           onChange={(e) => setValue(e.target.value)}
           onBlur={() => setIsDirty(true)}
           disabled={disabled}
-          tabIndex="1"
+          tabIndex={1}
         />
       </div>
       <p style={descriptionStyle} id="email-description">

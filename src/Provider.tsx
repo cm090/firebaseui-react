@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { Dispatch, SetStateAction } from "react";
 import {
+  Auth,
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
@@ -14,14 +15,38 @@ import {
   signInWithRedirect,
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
-import EmailPassword from "./EmailPassword";
+import EmailPassword from "./EmailPassword/EmailPassword";
 import PhoneNumber from "./PhoneNumber";
-import { errors } from "./Errors";
-import { translate, translateError } from "./Languages";
+import { errors } from "./errors";
+import { translate, translateError } from "./languages";
+import { FirebaseAuthUiConfig, SignInOption } from "./types";
+
+interface ProviderProps extends SignInOption {
+  auth: Auth;
+  passwordSpecs: FirebaseAuthUiConfig["passwordSpecs"];
+  callbacks: FirebaseAuthUiConfig["callbacks"];
+  continueUrl: FirebaseAuthUiConfig["continueUrl"];
+  displayName: FirebaseAuthUiConfig["displayName"];
+  setSendSMS: Dispatch<SetStateAction<boolean>>;
+  setEmailLinkOpen: Dispatch<SetStateAction<boolean>>;
+  setAlert: Dispatch<SetStateAction<string>>;
+  setError: Dispatch<SetStateAction<string>>;
+  setVerify: Dispatch<SetStateAction<boolean>>;
+  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
+  setMfaResolver: Dispatch<SetStateAction<any>>;
+  formDisabledStyles: FirebaseAuthUiConfig["formDisabledStyles"];
+  formButtonStyles: FirebaseAuthUiConfig["formButtonStyles"];
+  formInputStyles: FirebaseAuthUiConfig["formInputStyles"];
+  formLabelStyles: FirebaseAuthUiConfig["formLabelStyles"];
+  formSmallButtonStyles: FirebaseAuthUiConfig["formSmallButtonStyles"];
+  customErrors: FirebaseAuthUiConfig["customErrors"];
+  language: FirebaseAuthUiConfig["language"];
+  customText: FirebaseAuthUiConfig["customText"];
+}
 
 export default function Provider({
   auth,
-  providerId,
+  provider: providerId,
   signInFlow,
   scopes,
   customParameters,
@@ -50,7 +75,7 @@ export default function Provider({
   jsx,
   language,
   customText,
-}) {
+}: ProviderProps) {
   if (!providerName) {
     if (providerId == "emaillink") {
       providerName = "Email Link";
@@ -114,12 +139,12 @@ export default function Provider({
         providerId == "anonymous"
           ? signInAnonymously(auth)
           : signInFlow == "redirect"
-          ? signInWithRedirect(
+            ? signInWithRedirect(
               auth,
               provider,
               browserPopupRedirectResolver,
             )
-          : signInWithPopup(
+            : signInWithPopup(
               auth,
               provider,
               browserPopupRedirectResolver,
@@ -198,10 +223,10 @@ export default function Provider({
         {fullLabel
           ? fullLabel
           : `${translate(
-              "signInWith",
-              language,
-              customText,
-            )} ${providerName}`}
+            "signInWith",
+            language,
+            customText,
+          )} ${providerName}`}
       </span>
     </button>
   );

@@ -4,7 +4,7 @@ import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
 
 // in your app, use this import instead:
 // import FirebaseUI from "react-firebaseui";
-import FirebaseUI from "../../src/index";
+import FirebaseAuthUi from "../../src/FirebaseAuthUi";
 import firebaseConfig from "./firebaseConfig.json";
 
 const app = initializeApp(firebaseConfig);
@@ -74,8 +74,8 @@ export default function Home() {
   return (
     <main>
       <h1>React FirebaseUI Component Demo</h1>
-      <div style={{ width: "25vw" }}>
-        <FirebaseUI auth={auth} config={UIConfig} />
+      <div style={{ width: '90%', margin: 'auto' }}>
+        <FirebaseAuthUi auth={auth} config={UIConfig} />
       </div>
       {user && (
         <div>

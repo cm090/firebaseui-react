@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ConfirmationResult,
   PhoneAuthProvider,
   PhoneMultiFactorGenerator,
   RecaptchaVerifier,
@@ -9,8 +10,8 @@ import {
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
 import React, { useEffect, useRef, useState } from "react";
-import { errors } from "./Errors";
-import { translate, translateError } from "./Languages";
+import { errors } from "./errors";
+import { translate, translateError } from "./languages";
 
 export default function PhoneNumber({
   setSendSMS,
@@ -37,13 +38,13 @@ export default function PhoneNumber({
   //TODO: custom styles here too
   const styles =
     providerStyles["phonenumber"] || providerStyles["default"];
-  const [phoneNumber, setPhoneNumber] = useState();
+  const [phoneNumber, setPhoneNumber] = useState("");
   //TODO phone number validity
   const [phoneNumberValid, setPhoneNumberValid] = useState(false);
   const [enterCode, setEnterCode] = useState(false);
   const [code, setCode] = useState(Array(6).fill(""));
   const [countryCode, setCountryCode] = useState("+1");
-  const [verificationId, setVerificationId] = useState();
+  const [verificationId, setVerificationId] = useState("");
   const [name, setName] = useState("");
   const [selectedHint, setSelectedHint] = useState(0);
 
@@ -70,7 +71,7 @@ export default function PhoneNumber({
       enterCode || mfaSignIn
         ? true
         : /^\d{3}-\d{3}-\d{4}$/.test(phoneNumber) &&
-            (displayName == "required" ? name.length > 0 : true),
+        (displayName == "required" ? name.length > 0 : true),
     );
   }, [phoneNumber, name]);
 
@@ -103,8 +104,7 @@ export default function PhoneNumber({
   };
 
   const inputRefs = Array(6)
-    .fill()
-    .map(() => useRef(null));
+    .fill((() => useRef(null))());
 
   const handleCodeChange = (value, index) => {
     if (value !== "" && !/\d/.test(value)) return;
@@ -178,7 +178,7 @@ export default function PhoneNumber({
             customText,
           )} ${phoneNumber}.`,
         );
-        window.confirmationResult = confirmationResult;
+        (window as typeof window & { confirmationResult: ConfirmationResult }).confirmationResult = confirmationResult;
         setEnterCode(true);
       });
     } catch (error) {
@@ -191,7 +191,7 @@ export default function PhoneNumber({
     try {
       let formattedCode = code.join("");
 
-      await window.confirmationResult
+      await (window as typeof window & { confirmationResult: ConfirmationResult }).confirmationResult
         .confirm(formattedCode)
         .then(() => {
           //TODO restructure to get user credential
@@ -263,8 +263,8 @@ export default function PhoneNumber({
         {enterCode
           ? translate("enterCode", language, customText)
           : mfaSignIn
-          ? translate("verifyIdentity", language, customText)
-          : translate("sendSignInText", language, customText)}
+            ? translate("verifyIdentity", language, customText)
+            : translate("sendSignInText", language, customText)}
       </h1>
 
       {!enterCode && !mfaSignIn && (
@@ -317,7 +317,7 @@ export default function PhoneNumber({
               </button>
             </div>
             <select
-              autocomplete="tel-country-code"
+              autoComplete="tel-country-code"
               name="countrycode"
               id="countrycode"
               style={{
@@ -541,7 +541,7 @@ export default function PhoneNumber({
         <div>
           <select
             value={selectedHint}
-            onChange={e => setSelectedHint(e.target.value)}
+            onChange={e => setSelectedHint(parseInt(e.target.value))}
             style={{
               border: "1px solid #e2e8f0", // gray-300
               borderRadius: "0.375rem",
@@ -594,7 +594,7 @@ export default function PhoneNumber({
                 key={index}
                 ref={inputRefs[index]}
                 type="text"
-                maxLength="1"
+                maxLength={1}
                 value={digit}
                 onChange={e =>
                   handleCodeChange(e.target.value, index)

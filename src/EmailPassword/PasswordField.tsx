@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { translate } from "../Languages";
+import { translate } from "../languages";
 
 function passwordErrors({ password, passwordSpecs }) {
   const errors = [];
@@ -116,6 +116,7 @@ export default function PasswordField({
   callbacks,
   language,
   customText,
+  disabled,
 }) {
   const [show, setShow] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
@@ -136,7 +137,6 @@ export default function PasswordField({
   return (
     <div>
       <div
-        htmlFor="password"
         style={{
           display: "flex",
           alignItems: "center",
@@ -160,7 +160,7 @@ export default function PasswordField({
                 ...formSmallButtonStyles,
               }}
               type="button"
-              tabIndex="4"
+              tabIndex={4}
               onClick={async e => {
                 e.preventDefault();
                 if (!newPassword) {
@@ -219,7 +219,7 @@ export default function PasswordField({
           value={value}
           onChange={e => setValue(e.target.value)}
           onBlur={() => setIsDirty(true)}
-          tabIndex="2"
+          tabIndex={2}
         />
       </div>
       <p style={descriptionStyle} id="password-description">

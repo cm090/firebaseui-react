@@ -7,8 +7,8 @@ import {
   updateProfile,
 } from "firebase/auth";
 import React, { useState, useEffect, useRef } from "react";
-import { errors } from "./Errors";
-import { translate, translateError } from "./Languages";
+import { errors } from "./errors";
+import { translate, translateError } from "./languages";
 
 export default function EmailLink({
   setEmailLinkOpen,
@@ -67,12 +67,11 @@ export default function EmailLink({
   }, [email, name]);
 
   useEffect(() => {
+    let isSigningIn = false;
     if (auth && finishEmailSignIn && !isSigningIn) {
       isSigningIn = true;
       finishSignUp();
     }
-
-    let isSigningIn = false;
 
     async function finishSignUp() {
       const queryParams = new URLSearchParams(window.location.search);

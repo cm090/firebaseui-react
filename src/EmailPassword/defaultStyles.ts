@@ -42,7 +42,6 @@ export const buttonStyle = {
   fontSize: "0.875rem",
   lineHeight: "1.25rem",
   fontWeight: "600",
-  lineHeight: "1.5rem",
   justifyContent: "center",
   width: "100%",
   borderRadius: "0.375rem",

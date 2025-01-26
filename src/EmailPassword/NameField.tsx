@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { useEffect } from "react";
-import { translate } from "../Languages";
+import { translate } from "../languages";
 
 export default function NameField({
   value,
