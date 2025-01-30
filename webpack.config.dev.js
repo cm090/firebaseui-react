@@ -1,12 +1,13 @@
 import { resolve as _resolve, dirname } from "path";
 import { fileURLToPath } from "url";
+import CopyWebpackPlugin from "copy-webpack-plugin";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const config = {
-  mode: "production",
-  entry: _resolve(__dirname, "src/FirebaseAuthUi.tsx"),
+  mode: "development",
+  entry: _resolve(__dirname, "example/src/index.tsx"),
   module: {
     rules: [
       {
@@ -20,11 +21,14 @@ const config = {
     extensions: [".tsx", ".ts", ".js"],
   },
   output: {
+    filename: "bundle.js",
     path: _resolve(__dirname, "dist"),
-    filename: "index.js",
-    library: "FirebaseAuthUi",
-    libraryTarget: "umd",
   },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [{ from: "example/public" }],
+    }),
+  ],
 };
 
 export default config;
