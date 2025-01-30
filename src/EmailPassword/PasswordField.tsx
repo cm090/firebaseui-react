@@ -59,7 +59,7 @@ function formatPasswordRequirements(
     } ${translate("characters", language, customText)}`,
   );
 
-  const additionalReqs = [];
+  const additionalReqs: string[] = [];
 
   if (passwordSpecs?.containsUppercase) {
     additionalReqs.push(translate("oneUppercase", language, customText));

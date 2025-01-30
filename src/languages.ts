@@ -597,23 +597,25 @@ export const languages: Record<string, CustomText> = {
 };
 
 export const translate = (
-  key: keyof (typeof languages)["en"],
+  key: string,
   language: keyof typeof languages = "en",
   customTextMap?: FirebaseAuthUiConfig["customText"],
 ) => {
   // Check if customTextMap is not null and key exists, otherwise proceed
-  return customTextMap?.[key] ?? languages[language]?.[key];
+  const textKey = key as keyof CustomText["errors"];
+  return customTextMap?.[textKey] ?? languages[language]?.[textKey];
 };
 
 export const translateError = (
-  key: keyof (typeof languages)["en"]["errors"],
+  key: string,
   language: keyof typeof languages = "en",
   customTextMap?: FirebaseAuthUiConfig["customText"],
 ) => {
   // Use optional chaining and nullish coalescing to gracefully handle null or undefined values
+  const textKey = key as keyof CustomText["errors"];
   const rest =
-    customTextMap?.errors?.[key] ??
-    languages[language]?.errors?.[key] ??
+    customTextMap?.errors?.[textKey] ??
+    languages[language]?.errors?.[textKey] ??
     languages[language]?.["somethingWentWrong"];
 
   return rest;
