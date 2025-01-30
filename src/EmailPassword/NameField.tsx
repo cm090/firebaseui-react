@@ -3,11 +3,12 @@ import React, {
   CSSProperties,
   Dispatch,
   SetStateAction,
+  useContext,
   useState,
 } from "react";
 import { useEffect } from "react";
 import { translate } from "../languages";
-import { FirebaseAuthUiConfig } from "../types";
+import { ConfigContext } from "../FirebaseAuthUi";
 
 interface NameFieldProps {
   value: string;
@@ -17,11 +18,7 @@ interface NameFieldProps {
   labelStyle: CSSProperties;
   descriptionStyle: CSSProperties;
   disabled?: boolean;
-  formInputStyles?: CSSProperties;
-  formLabelStyles?: CSSProperties;
   setNameValid: Dispatch<SetStateAction<boolean>>;
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
 }
 
 export default function NameField({
@@ -32,12 +29,10 @@ export default function NameField({
   labelStyle,
   descriptionStyle,
   disabled = false,
-  formInputStyles,
-  formLabelStyles,
   setNameValid,
-  language,
-  customText,
 }: NameFieldProps) {
+  const config = useContext(ConfigContext);
+
   const [isDirty, setIsDirty] = useState(false);
   const isValid = /^[a-zA-Z'-\s]+$/.test(value); //only letters, apostrophes, and hyphens
 
@@ -49,8 +44,11 @@ export default function NameField({
 
   return (
     <div>
-      <label htmlFor="email" style={{ ...labelStyle, ...formLabelStyles }}>
-        {translate("name", language, customText)}
+      <label
+        htmlFor="email"
+        style={{ ...labelStyle, ...config.formLabelStyles }}
+      >
+        {translate("name", config.language, config.customText)}
       </label>
       <div style={{ marginTop: "0.5rem" }}>
         <input
@@ -58,8 +56,12 @@ export default function NameField({
           type="text"
           name="name"
           id="name"
-          style={{ ...inputStyle, ...formInputStyles }}
-          placeholder={translate("namePlaceholder", language, customText)}
+          style={{ ...inputStyle, ...config.formInputStyles }}
+          placeholder={translate(
+            "namePlaceholder",
+            config.language,
+            config.customText,
+          )}
           autoComplete="name"
           aria-describedby="name-description"
           aria-invalid={!isValid ? "true" : "false"}
@@ -70,7 +72,9 @@ export default function NameField({
         />
       </div>
       <p style={descriptionStyle} id="name-description">
-        {isDirty && !isValid && translate("nameDirty", language, customText)}
+        {isDirty &&
+          !isValid &&
+          translate("nameDirty", config.language, config.customText)}
         &nbsp;
       </p>
     </div>

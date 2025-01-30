@@ -1,32 +1,20 @@
 "use client";
 
-import React, { Dispatch, SetStateAction } from "react";
-import { sendEmailVerification, User } from "firebase/auth";
+import React, { useContext } from "react";
+import { sendEmailVerification } from "firebase/auth";
 import { useEffect, useState } from "react";
-import { FirebaseAuthUiConfig } from "./types";
+import { ConfigContext } from "./FirebaseAuthUi";
 
-interface VerifyEmailProps {
-  user: User;
-  setAlert: Dispatch<SetStateAction<string>>;
-  setError: Dispatch<SetStateAction<string>>;
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
-}
+export default function VerifyEmail() {
+  const config = useContext(ConfigContext);
 
-export default function VerifyEmail({
-  user,
-  setAlert,
-  setError,
-  language,
-  customText,
-}: VerifyEmailProps) {
-  const [verified, setVerified] = useState(user?.emailVerified);
+  const [verified, setVerified] = useState(config.state.user?.emailVerified);
   const [sent, setSent] = useState(false);
   useEffect(() => {
-    if (user) {
-      setVerified(user.emailVerified);
+    if (config.state.user) {
+      setVerified(config.state.user.emailVerified);
     }
-  }, [user]);
+  }, [config.state.user]);
 
   if (verified) {
     return (
@@ -45,17 +33,20 @@ export default function VerifyEmail({
         <button
           onClick={async (e) => {
             e.preventDefault();
-            await sendEmailVerification(user)
+            await sendEmailVerification(config.state.user)
               .then(() => {
                 setSent(true);
-                setAlert(`An email has been sent to ${user.email}`);
+                config.setState({
+                  key: "alert",
+                  value: `An email has been sent to ${config.state.user.email}`,
+                });
               })
               .catch((error) => {
-                setError(error.message);
+                config.setState({ key: "error", value: error.message });
               });
           }}
         >
-          Send a link to {user.email}
+          Send a link to {config.state.user.email}
         </button>
       )}
     </>

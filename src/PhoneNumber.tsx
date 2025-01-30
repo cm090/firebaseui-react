@@ -1,9 +1,5 @@
-"use client";
-
 import {
-  Auth,
   ConfirmationResult,
-  MultiFactorResolver,
   PhoneAuthProvider,
   PhoneMultiFactorGenerator,
   RecaptchaVerifier,
@@ -11,58 +7,13 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { providerStyles } from "./providerStyles";
-import React, {
-  CSSProperties,
-  Dispatch,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import { translate, translateError } from "./languages";
-import { FirebaseAuthUiConfig } from "./types";
+import { ConfigContext } from "./FirebaseAuthUi";
 
-interface PhoneNumberProps {
-  setSendSMS: Dispatch<SetStateAction<boolean>>;
-  setAlert: Dispatch<SetStateAction<string>>;
-  setError: Dispatch<SetStateAction<string>>;
-  callbacks: FirebaseAuthUiConfig["callbacks"];
-  mfaSignIn: boolean;
-  mfaResolver: MultiFactorResolver;
-  auth: Auth;
-  displayName: string;
-  formButtonStyles: CSSProperties;
-  formDisabledStyles: CSSProperties;
-  formInputStyles: CSSProperties;
-  formLabelStyles: CSSProperties;
-  formSmallButtonStyles: CSSProperties;
-  customErrors: FirebaseAuthUiConfig["customErrors"];
-  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
-  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
-}
+export default function PhoneNumber() {
+  const config = useContext(ConfigContext);
 
-export default function PhoneNumber({
-  setSendSMS,
-  setAlert,
-  setError,
-  callbacks,
-  mfaSignIn,
-  mfaResolver,
-  auth,
-  displayName,
-  formButtonStyles,
-  formDisabledStyles,
-  formInputStyles,
-  formLabelStyles,
-  formSmallButtonStyles,
-  customErrors,
-  setMfaResolver,
-  setMfaSignIn,
-  language,
-  customText,
-}: PhoneNumberProps) {
   //TODO: custom styles here too
   const styles = providerStyles["phonenumber"] || providerStyles["default"];
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -90,28 +41,36 @@ export default function PhoneNumber({
     return error;
   };
 
-  const phoneAuthProvider = new PhoneAuthProvider(auth);
+  const phoneAuthProvider = new PhoneAuthProvider(config.auth);
   let recaptchaVerifier;
 
   useEffect(() => {
     setPhoneNumberValid(
-      enterCode || mfaSignIn
+      enterCode || config.state.mfaSignIn
         ? true
         : /^\d{3}-\d{3}-\d{4}$/.test(phoneNumber) &&
-            (displayName == "required" ? name.length > 0 : true),
+            (config.displayName == "required" ? name.length > 0 : true),
     );
   }, [phoneNumber, name]);
 
   const sendMfaText = function () {
     if (!recaptchaVerifier) {
-      recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-        size: "invisible",
-      });
+      recaptchaVerifier = new RecaptchaVerifier(
+        config.auth,
+        "recaptcha-container",
+        {
+          size: "invisible",
+        },
+      );
     }
-    if (mfaSignIn && mfaResolver && recaptchaVerifier) {
+    if (
+      config.state.mfaSignIn &&
+      config.state.mfaResolver &&
+      recaptchaVerifier
+    ) {
       const phoneInfoOptions = {
-        multiFactorHint: mfaResolver.hints[selectedHint],
-        session: mfaResolver.session,
+        multiFactorHint: config.state.mfaResolver.hints[selectedHint],
+        session: config.state.mfaResolver.session,
       };
       try {
         phoneAuthProvider
@@ -173,9 +132,13 @@ export default function PhoneNumber({
   const sendCode = async function () {
     try {
       if (!recaptchaVerifier) {
-        recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-          size: "invisible",
-        });
+        recaptchaVerifier = new RecaptchaVerifier(
+          config.auth,
+          "recaptcha-container",
+          {
+            size: "invisible",
+          },
+        );
       }
       if (
         !phoneNumber ||
@@ -186,22 +149,28 @@ export default function PhoneNumber({
         return;
       const formattedNumber = countryCode + " " + phoneNumber;
       await signInWithPhoneNumber(
-        auth,
+        config.auth,
         formattedNumber,
         recaptchaVerifier,
       ).then((confirmationResult) => {
-        setAlert(
-          `${translate("codeSent", language, customText)} ${phoneNumber}.`,
-        );
+        config.setState({
+          key: "alert",
+          value: `${translate("codeSent", config.language, config.customText)} ${phoneNumber}.`,
+        });
         (
           window as typeof window & { confirmationResult: ConfirmationResult }
         ).confirmationResult = confirmationResult;
         setEnterCode(true);
       });
     } catch (error) {
-      setError(
-        translateError(processNetworkError(error).code, language, customText),
-      );
+      config.setState({
+        key: "error",
+        value: translateError(
+          processNetworkError(error).code,
+          config.language,
+          config.customText,
+        ),
+      });
     }
   };
 
@@ -216,40 +185,50 @@ export default function PhoneNumber({
         .then(() => {
           //TODO restructure to get user credential
           if (name.length > 0) {
-            updateProfile(auth.currentUser, { displayName: name });
+            updateProfile(config.auth.currentUser, { displayName: name });
           }
-          setSendSMS(false);
+          config.setState({ key: "sendSMS", value: false });
         });
     } catch (err) {
       const error = processNetworkError(err);
-      setError(translateError(error.code, language, customText));
-      if (typeof callbacks?.signInFailure === "function")
-        callbacks?.signInFailure(error);
+      config.setState({
+        key: "error",
+        value: translateError(error.code, config.language, config.customText),
+      });
+      if (typeof config.callbacks.signInFailure === "function") {
+        config.callbacks.signInFailure(error);
+      }
     }
   };
 
   const handleButtonPress = function () {
     //TODO verify code!
-    if (mfaSignIn && enterCode) {
+    if (config.state.mfaSignIn && enterCode) {
       const formattedCode = code.join("");
       const cred = PhoneAuthProvider.credential(verificationId, formattedCode);
       const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
       try {
-        mfaResolver.resolveSignIn(multiFactorAssertion).then((userCred) => {
-          if (callbacks?.signInSuccessWithAuthResult) {
-            setSendSMS(false);
-            setMfaResolver(null);
-            setMfaSignIn(false);
-            callbacks.signInSuccessWithAuthResult(userCred.user);
-          }
-        });
+        config.state.mfaResolver
+          .resolveSignIn(multiFactorAssertion)
+          .then((userCred) => {
+            if (config.callbacks.signInSuccessWithAuthResult) {
+              config.setState({ key: "sendSMS", value: false });
+              config.setState({ key: "mfaResolver", value: null });
+              config.setState({ key: "mfaSignIn", value: false });
+              config.callbacks.signInSuccessWithAuthResult(userCred);
+            }
+          });
       } catch (err) {
         const error = processNetworkError(err);
-        setError(translateError(error.code, language, customText));
-        if (typeof callbacks?.signInFailure === "function")
-          callbacks?.signInFailure(error);
+        config.setState({
+          key: "error",
+          value: translateError(error.code, config.language, config.customText),
+        });
+        if (typeof config.callbacks.signInFailure === "function") {
+          config.callbacks.signInFailure(error);
+        }
       }
-    } else if (mfaSignIn) {
+    } else if (config.state.mfaSignIn) {
       sendMfaText();
     } else {
       if (enterCode) {
@@ -270,13 +249,13 @@ export default function PhoneNumber({
         }}
       >
         {enterCode
-          ? translate("enterCode", language, customText)
-          : mfaSignIn
-            ? translate("verifyIdentity", language, customText)
-            : translate("sendSignInText", language, customText)}
+          ? translate("enterCode", config.language, config.customText)
+          : config.state.mfaSignIn
+            ? translate("verifyIdentity", config.language, config.customText)
+            : translate("sendSignInText", config.language, config.customText)}
       </h1>
 
-      {!enterCode && !mfaSignIn && (
+      {!enterCode && !config.state.mfaSignIn && (
         <form
           style={{
             width: "80%",
@@ -305,24 +284,26 @@ export default function PhoneNumber({
                   fontSize: "0.875rem",
                   fontWeight: "500",
                   color: "#1a202c",
-                  ...formLabelStyles,
+                  ...config.formLabelStyles,
                 }}
               >
-                {translate("countryCode", language, customText)}
+                {translate("countryCode", config.language, config.customText)}
                 <span style={{ color: "#FF0000" }}> *</span>
               </label>
               <button
-                onClick={() => setSendSMS(false)}
+                onClick={() =>
+                  config.setState({ key: "sendSMS", value: false })
+                }
                 style={{
                   fontSize: "0.875rem",
                   color: "#2b6cb0",
                   border: "none",
                   backgroundColor: "#fff",
                   cursor: "pointer",
-                  ...formSmallButtonStyles,
+                  ...config.formSmallButtonStyles,
                 }}
               >
-                {translate("cancel", language, customText)}
+                {translate("cancel", config.language, config.customText)}
               </button>
             </div>
             <select
@@ -463,10 +444,10 @@ export default function PhoneNumber({
                 fontSize: "0.875rem",
                 fontWeight: "500",
                 color: "#1a202c",
-                ...formLabelStyles,
+                ...config.formLabelStyles,
               }}
             >
-              {translate("phoneNumber", language, customText)}
+              {translate("phoneNumber", config.language, config.customText)}
               <span style={{ color: "#FF0000" }}> *</span>
             </label>
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -481,29 +462,29 @@ export default function PhoneNumber({
                   borderRadius: "0.375rem",
                   padding: "0.5rem 0.75rem",
                   width: "100%",
-                  ...formInputStyles,
+                  ...config.formInputStyles,
                 }}
               />
             </div>
 
-            {displayName && (
+            {config.displayName && (
               <div style={{ marginTop: "0.25rem" }}>
-                {displayName == "required" ? (
+                {config.displayName == "required" ? (
                   <label
                     style={{
                       fontSize: "0.875rem",
                       fontWeight: "500",
                       color: "#1a202c",
-                      ...formLabelStyles,
+                      ...config.formLabelStyles,
                     }}
                     htmlFor="name"
                   >
-                    {translate("name", language, customText)}
+                    {translate("name", config.language, config.customText)}
                     <span style={{ color: "#FF0000" }}> *</span>
                   </label>
                 ) : (
-                  <label style={{ ...formLabelStyles }} htmlFor="name">
-                    {translate("name", language, customText)}
+                  <label style={config.formLabelStyles} htmlFor="name">
+                    {translate("name", config.language, config.customText)}
                   </label>
                 )}
                 <input
@@ -512,8 +493,8 @@ export default function PhoneNumber({
                   value={name}
                   placeholder={translate(
                     "namePlaceholder",
-                    language,
-                    customText,
+                    config.language,
+                    config.customText,
                   )}
                   onChange={(e) => setName(e.target.value)}
                   style={{
@@ -522,7 +503,7 @@ export default function PhoneNumber({
                     padding: "0.5rem 0.25rem",
                     width: "100%",
                     marginBottom: "0.25rem",
-                    ...formInputStyles,
+                    ...config.formInputStyles,
                   }}
                 />
               </div>
@@ -531,7 +512,7 @@ export default function PhoneNumber({
         </form>
       )}
 
-      {!enterCode && mfaSignIn && (
+      {!enterCode && config.state.mfaSignIn && (
         <div>
           <select
             value={selectedHint}
@@ -543,15 +524,21 @@ export default function PhoneNumber({
               width: "100%",
             }}
           >
-            {mfaResolver?.hints.map((hint, index) => (
+            {config.state.mfaResolver?.hints.map((hint, index) => (
               <option value={index} key={index}>
                 xxx-xxx-{hint.displayName?.slice(-4)}
               </option>
             ))}
           </select>
           <p>
-            {translate("confirmationTextWillBeSent", language, customText)}{" "}
-            {mfaResolver?.hints[selectedHint]?.displayName?.slice(-4)}
+            {translate(
+              "confirmationTextWillBeSent",
+              config.language,
+              config.customText,
+            )}{" "}
+            {config.state.mfaResolver?.hints[selectedHint]?.displayName?.slice(
+              -4,
+            )}
           </p>
         </div>
       )}
@@ -565,17 +552,17 @@ export default function PhoneNumber({
             }}
           >
             <button
-              onClick={() => setSendSMS(false)}
+              onClick={() => config.setState({ key: "sendSMS", value: false })}
               style={{
                 fontSize: "0.875rem",
                 color: "#2b6cb0",
                 border: "none",
                 backgroundColor: "#fff",
                 cursor: "pointer",
-                ...formSmallButtonStyles,
+                ...config.formSmallButtonStyles,
               }}
             >
-              {translate("cancel", language, customText)}
+              {translate("cancel", config.language, config.customText)}
             </button>
           </div>
           <form style={{ display: "flex", gap: "0.5rem" }}>
@@ -623,14 +610,14 @@ export default function PhoneNumber({
           boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
           justifyContent: "center",
           border: "none",
-          ...formButtonStyles,
-          ...(phoneNumberValid ? {} : formDisabledStyles),
+          ...config.formButtonStyles,
+          ...(phoneNumberValid ? {} : config.formDisabledStyles),
         }}
       >
         <span style={{ fontSize: "0.875rem", fontWeight: "500" }}>
           {enterCode
-            ? translate("finishSigningIn", language, customText)
-            : translate("sendText", language, customText)}
+            ? translate("finishSigningIn", config.language, config.customText)
+            : translate("sendText", config.language, config.customText)}
         </span>
       </button>
     </>

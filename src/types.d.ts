@@ -1,4 +1,5 @@
-import type { CSSProperties } from "react";
+import { Auth, MultiFactorResolver, User, UserCredential } from "firebase/auth";
+import type { CSSProperties, Dispatch, SetStateAction } from "react";
 
 export interface FirebaseAuthUiConfig {
   requireVerifyEmail?: boolean;
@@ -16,18 +17,26 @@ export interface FirebaseAuthUiConfig {
   signInOptions: (string | SignInOption)[];
   continueUrl?: string;
   displayName?: string;
+  auth: Auth;
+  state: FirebaseAuthUiState;
+  setState: Dispatch<{
+    key: string;
+    value: SetStateAction<
+      FirebaseAuthUiConfig["state"][keyof FirebaseAuthUiConfig["state"]]
+    >;
+  }>;
 }
 
 interface AuthCallbacks {
-  signInSuccessWithAuthResult?: (authResult: any) => boolean;
-  signInFailure?: (error: Error) => boolean;
+  signInSuccessWithAuthResult?: (authResult: UserCredential) => void;
+  signInFailure?: (error: Error) => void;
 }
 
-interface PasswordSpecs {}
+type PasswordSpecs = unknown;
 
-interface CustomErrors {}
+type CustomErrors = unknown;
 
-interface CustomText {}
+type CustomText = unknown;
 
 export interface SignInOption {
   provider: string;
@@ -40,4 +49,15 @@ export interface SignInOption {
   customStyles?: CSSProperties;
   icon?: string;
   jsx?: JSX.Element;
+}
+
+export interface FirebaseAuthUiState {
+  emailLinkOpen?: boolean;
+  sendSMS?: boolean;
+  verify?: boolean;
+  mfaSignIn?: boolean;
+  mfaResolver?: MultiFactorResolver;
+  alert?: string;
+  error?: string;
+  user?: User;
 }

@@ -1,64 +1,18 @@
 "use client";
 import {
-  Auth,
   getMultiFactorResolver,
   isSignInWithEmailLink,
-  MultiFactorResolver,
   sendSignInLinkToEmail,
   signInWithEmailLink,
   updateProfile,
 } from "firebase/auth";
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  Dispatch,
-  SetStateAction,
-} from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import { translate, translateError } from "./languages";
-import { FirebaseAuthUiConfig } from "./types";
+import { ConfigContext } from "./FirebaseAuthUi";
 
-interface EmailLinkProps {
-  setEmailLinkOpen: Dispatch<SetStateAction<boolean>>;
-  continueUrl: string;
-  callbacks: FirebaseAuthUiConfig["callbacks"];
-  setAlert: Dispatch<SetStateAction<string>>;
-  setError: Dispatch<SetStateAction<string>>;
-  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
-  setSendSMS: Dispatch<SetStateAction<boolean>>;
-  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
-  auth: Auth;
-  displayName: string;
-  formButtonStyles: React.CSSProperties;
-  formDisabledStyles: React.CSSProperties;
-  formInputStyles: React.CSSProperties;
-  formLabelStyles: React.CSSProperties;
-  formSmallButtonStyles: React.CSSProperties;
-  customErrors: FirebaseAuthUiConfig["customErrors"];
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
-}
+export default function EmailLink() {
+  const config = useContext(ConfigContext);
 
-export default function EmailLink({
-  setEmailLinkOpen,
-  continueUrl,
-  callbacks,
-  setAlert,
-  setError,
-  setMfaResolver,
-  setSendSMS,
-  setMfaSignIn,
-  auth,
-  displayName,
-  formButtonStyles,
-  formDisabledStyles,
-  formInputStyles,
-  formLabelStyles,
-  formSmallButtonStyles,
-  customErrors,
-  language,
-  customText,
-}: EmailLinkProps) {
   const [email, setEmail] = useState("");
   const [formIsValid, setFormIsValid] = useState(false);
   const [finishEmailSignIn, setFinishEmailSignIn] = useState(false);
@@ -80,19 +34,24 @@ export default function EmailLink({
     return error;
   };
 
-  useEffect(() => {
-    setFinishEmailSignIn(isSignInWithEmailLink(auth, window.location.href));
-  }, []);
+  useEffect(
+    () =>
+      setFinishEmailSignIn(
+        isSignInWithEmailLink(config.auth, window.location.href),
+      ),
+    [],
+  );
 
   useEffect(() => {
     setFormIsValid(
-      isEmailValid() && (displayName == "required" ? name.length > 0 : true),
+      isEmailValid() &&
+        (config.displayName == "required" ? name.length > 0 : true),
     );
   }, [email, name]);
 
   useEffect(() => {
     let isSigningIn = false;
-    if (auth && finishEmailSignIn && !isSigningIn) {
+    if (config.auth && finishEmailSignIn && !isSigningIn) {
       isSigningIn = true;
       finishSignUp();
     }
@@ -103,37 +62,52 @@ export default function EmailLink({
       const queryName = queryParams.get("name");
 
       try {
-        await signInWithEmailLink(auth, queryEmail, window.location.href).then(
-          (user) => {
-            if (queryName) {
-              updateProfile(user.user, { displayName: queryName }).then(() => {
-                if (callbacks?.signInSuccessWithAuthResult)
-                  callbacks.signInSuccessWithAuthResult(user);
-              });
-            } else if (callbacks?.signInSuccessWithAuthResult)
-              callbacks.signInSuccessWithAuthResult(user);
-            setEmailLinkOpen(false);
-          },
-        );
+        await signInWithEmailLink(
+          config.auth,
+          queryEmail,
+          window.location.href,
+        ).then((user) => {
+          if (queryName) {
+            updateProfile(user.user, { displayName: queryName }).then(() => {
+              if (config.callbacks.signInSuccessWithAuthResult) {
+                config.callbacks.signInSuccessWithAuthResult(user);
+              }
+            });
+          } else if (config.callbacks.signInSuccessWithAuthResult) {
+            config.callbacks.signInSuccessWithAuthResult(user);
+          }
+          config.setState({ key: "emailLinkOpen", value: false });
+        });
       } catch (err) {
         const error = processNetworkError(err);
         if (error.code === "auth/multi-factor-auth-required") {
-          setMfaResolver(getMultiFactorResolver(auth, error));
-          setMfaSignIn(true);
-          setEmailLinkOpen(false);
-          setSendSMS(true);
+          config.setState({
+            key: "mfaResolver",
+            value: getMultiFactorResolver(config.auth, error),
+          });
+          config.setState({ key: "mfaSignIn", value: true });
+          config.setState({ key: "emailLinkOpen", value: false });
+          config.setState({ key: "sendSMS", value: true });
         } else {
           if (
             finishEmailSignIn &&
-            typeof callbacks?.signInFailure === "function"
-          )
-            callbacks?.signInFailure(error);
-          setError(translateError(error.code, language, customText));
+            typeof config.callbacks.signInFailure === "function"
+          ) {
+            config.callbacks.signInFailure(error);
+          }
+          config.setState({
+            key: "error",
+            value: translateError(
+              error.code,
+              config.language,
+              config.customText,
+            ),
+          });
           throw new Error(error);
         }
       }
     }
-  }, [finishEmailSignIn, auth]);
+  }, [finishEmailSignIn, config.auth]);
 
   const isEmailValid = function () {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -144,30 +118,41 @@ export default function EmailLink({
     e.preventDefault();
     try {
       if (finishEmailSignIn) {
-        await signInWithEmailLink(auth, email, window.location.href).then(
-          (user) => {
-            if (callbacks?.signInSuccessWithAuthResult)
-              callbacks.signInSuccessWithAuthResult(user);
-            setEmailLinkOpen(false);
-          },
-        );
+        await signInWithEmailLink(
+          config.auth,
+          email,
+          window.location.href,
+        ).then((user) => {
+          if (config.callbacks.signInSuccessWithAuthResult) {
+            config.callbacks.signInSuccessWithAuthResult(user);
+          }
+          config.setState({ key: "emailLinkOpen", value: false });
+        });
       } else {
-        await sendSignInLinkToEmail(auth, email, {
+        await sendSignInLinkToEmail(config.auth, email, {
           handleCodeInApp: true,
-          url: `${continueUrl}/?email=${email}${
+          url: `${config.continueUrl}/?email=${email}${
             name.length > 0 ? "&name=" + name : ""
           }`,
         }).then(() => {
-          setAlert(
-            `${translate("signInLinkSent", language, customText)} ${email}`,
-          );
+          config.setState({
+            key: "alert",
+            value: `${translate("signInLinkSent", config.language, config.customText)} ${email}`,
+          });
         });
       }
     } catch (err) {
       const error = processNetworkError(err);
-      if (finishEmailSignIn && typeof callbacks?.signInFailure === "function")
-        callbacks?.signInFailure(error);
-      setError(translateError(error.code, language, customText));
+      if (
+        finishEmailSignIn &&
+        typeof config.callbacks.signInFailure === "function"
+      ) {
+        config.callbacks.signInFailure(error);
+      }
+      config.setState({
+        key: "error",
+        value: translateError(error.code, config.language, config.customText),
+      });
     }
   };
 
@@ -181,12 +166,12 @@ export default function EmailLink({
           marginBottom: "0.5rem",
         }}
       >
-        {translate("signInWithEmailLink", language, customText)}
+        {translate("signInWithEmailLink", config.language, config.customText)}
       </h1>
 
       {finishEmailSignIn && (
         <p style={{ fontSize: "0.875rem" }}>
-          {translate("signingYouIn", language, customText)}
+          {translate("signingYouIn", config.language, config.customText)}
         </p>
       )}
 
@@ -220,22 +205,24 @@ export default function EmailLink({
                 alignItems: "center",
               }}
             >
-              <label style={{ ...formLabelStyles }} htmlFor="email">
-                {translate("email", language, customText)}
+              <label style={config.formLabelStyles} htmlFor="email">
+                {translate("email", config.language, config.customText)}
                 <span style={{ color: "#FF0000" }}> *</span>
               </label>
               <button
-                onClick={() => setEmailLinkOpen(false)}
+                onClick={() =>
+                  config.setState({ key: "emailLinkOpen", value: false })
+                }
                 style={{
                   fontSize: "0.875rem",
                   color: "#2b6cb0",
                   border: "none",
                   backgroundColor: "#fff",
                   cursor: "pointer",
-                  ...formSmallButtonStyles,
+                  ...config.formSmallButtonStyles,
                 }}
               >
-                {translate("cancel", language, customText)}
+                {translate("cancel", config.language, config.customText)}
               </button>
             </div>
 
@@ -251,7 +238,7 @@ export default function EmailLink({
                 borderRadius: "0.375rem",
                 padding: "0.5rem 0.25rem",
                 width: "100%",
-                ...formInputStyles,
+                ...config.formInputStyles,
               }}
             />
           </div>
@@ -278,14 +265,14 @@ export default function EmailLink({
               boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
               justifyContent: "center",
               border: "none",
-              ...formButtonStyles,
-              ...(formIsValid ? {} : formDisabledStyles),
+              ...config.formButtonStyles,
+              ...(formIsValid ? {} : config.formDisabledStyles),
             }}
             onClick={(e) => submit(e)}
           >
             {finishEmailSignIn
-              ? translate("finishSigningIn", language, customText)
-              : translate("sendEmailLink", language, customText)}
+              ? translate("finishSigningIn", config.language, config.customText)
+              : translate("sendEmailLink", config.language, config.customText)}
           </button>
         </form>
       )}

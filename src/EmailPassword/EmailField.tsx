@@ -5,9 +5,10 @@ import React, {
   SetStateAction,
   useState,
   useEffect,
+  useContext,
 } from "react";
 import { translate } from "../languages";
-import { FirebaseAuthUiConfig } from "../types";
+import { ConfigContext } from "../FirebaseAuthUi";
 
 interface EmailFieldProps {
   value: string;
@@ -17,11 +18,7 @@ interface EmailFieldProps {
   labelStyle: CSSProperties;
   descriptionStyle: CSSProperties;
   disabled?: boolean;
-  formInputStyles: CSSProperties;
-  formLabelStyles: CSSProperties;
   setEmailValid: Dispatch<SetStateAction<boolean>>;
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
 }
 
 export default function EmailField({
@@ -32,12 +29,10 @@ export default function EmailField({
   labelStyle,
   descriptionStyle,
   disabled = false,
-  formInputStyles,
-  formLabelStyles,
   setEmailValid,
-  language,
-  customText,
 }: EmailFieldProps) {
+  const config = useContext(ConfigContext);
+
   const [isDirty, setIsDirty] = useState(false);
   const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 
@@ -49,8 +44,11 @@ export default function EmailField({
 
   return (
     <div>
-      <label htmlFor="email" style={{ ...labelStyle, ...formLabelStyles }}>
-        {translate("email", language, customText)}
+      <label
+        htmlFor="email"
+        style={{ ...labelStyle, ...config.formLabelStyles }}
+      >
+        {translate("email", config.language, config.customText)}
       </label>
       <div style={{ marginTop: "0.5rem" }}>
         <input
@@ -58,8 +56,12 @@ export default function EmailField({
           type="email"
           name="email"
           id="email"
-          style={{ ...inputStyle, ...formInputStyles }}
-          placeholder={translate("emailPlaceholder", language, customText)}
+          style={{ ...inputStyle, ...config.formInputStyles }}
+          placeholder={translate(
+            "emailPlaceholder",
+            config.language,
+            config.customText,
+          )}
           autoComplete="email"
           aria-describedby="email-description"
           aria-invalid={!isValid ? "true" : "false"}
@@ -71,7 +73,9 @@ export default function EmailField({
         />
       </div>
       <p style={descriptionStyle} id="email-description">
-        {isDirty && !isValid && translate("emailDirty", language, customText)}
+        {isDirty &&
+          !isValid &&
+          translate("emailDirty", config.language, config.customText)}
         &nbsp;
       </p>
     </div>

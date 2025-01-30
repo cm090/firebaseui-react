@@ -1,12 +1,8 @@
-"use client";
-
-import React, { Dispatch, SetStateAction } from "react";
+import React, { useContext } from "react";
 import {
-  Auth,
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
-  MultiFactorResolver,
   OAuthProvider,
   TwitterAuthProvider,
   browserPopupRedirectResolver,
@@ -18,62 +14,34 @@ import {
 import { providerStyles } from "./providerStyles";
 import EmailPassword from "./EmailPassword/EmailPassword";
 import { translate, translateError } from "./languages";
-import { FirebaseAuthUiConfig, SignInOption } from "./types";
+import { SignInOption } from "./types";
+import { ConfigContext } from "./FirebaseAuthUi";
+import { styles } from "./defaults";
 
-interface ProviderProps extends SignInOption {
-  auth: Auth;
-  passwordSpecs: FirebaseAuthUiConfig["passwordSpecs"];
-  callbacks: FirebaseAuthUiConfig["callbacks"];
-  continueUrl: FirebaseAuthUiConfig["continueUrl"];
-  displayName: FirebaseAuthUiConfig["displayName"];
-  setSendSMS: Dispatch<SetStateAction<boolean>>;
-  setEmailLinkOpen: Dispatch<SetStateAction<boolean>>;
-  setAlert: Dispatch<SetStateAction<string>>;
-  setError: Dispatch<SetStateAction<string>>;
-  setVerify: Dispatch<SetStateAction<boolean>>;
-  setMfaSignIn: Dispatch<SetStateAction<boolean>>;
-  setMfaResolver: Dispatch<SetStateAction<MultiFactorResolver>>;
-  formDisabledStyles: FirebaseAuthUiConfig["formDisabledStyles"];
-  formButtonStyles: FirebaseAuthUiConfig["formButtonStyles"];
-  formInputStyles: FirebaseAuthUiConfig["formInputStyles"];
-  formLabelStyles: FirebaseAuthUiConfig["formLabelStyles"];
-  formSmallButtonStyles: FirebaseAuthUiConfig["formSmallButtonStyles"];
-  customErrors: FirebaseAuthUiConfig["customErrors"];
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
-}
+const providerMap = {
+  "google.com": () => new GoogleAuthProvider(),
+  "github.com": () => new GithubAuthProvider(),
+  "x.com": () => new TwitterAuthProvider(),
+  "facebook.com": () => new FacebookAuthProvider(),
+  "microsoft.com": () => new OAuthProvider("microsoft.com"),
+  "yahoo.com": () => new OAuthProvider("yahoo.com"),
+  "apple.com": () => new OAuthProvider("apple.com"),
+};
 
 export default function Provider({
-  auth,
   provider: providerId,
   signInFlow,
   scopes,
   customParameters,
   providerName,
   fullLabel,
-  callbacks,
   authType,
   customStyles,
-  continueUrl,
-  setSendSMS,
-  setEmailLinkOpen,
-  setAlert,
-  setError,
-  passwordSpecs,
-  setMfaSignIn,
-  setMfaResolver,
-  displayName,
   icon,
-  formDisabledStyles,
-  formButtonStyles,
-  formInputStyles,
-  formLabelStyles,
-  formSmallButtonStyles,
-  customErrors,
   jsx,
-  language,
-  customText,
-}: ProviderProps) {
+}: SignInOption) {
+  const config = useContext(ConfigContext);
+
   if (!providerName) {
     if (providerId == "emaillink") {
       providerName = "Email Link";
@@ -86,24 +54,18 @@ export default function Provider({
   }
 
   if (providerId == "anonymous" && !fullLabel) {
-    fullLabel = translate("signInAsGuest", language, customText);
+    fullLabel = translate("signInAsGuest", config.language, config.customText);
   }
 
   if (providerId == "emaillink" && !fullLabel) {
-    fullLabel = translate("signInWithEmailLink", language, customText);
+    fullLabel = translate(
+      "signInWithEmailLink",
+      config.language,
+      config.customText,
+    );
   }
 
-  const providerMap = {
-    "google.com": () => new GoogleAuthProvider(),
-    "github.com": () => new GithubAuthProvider(),
-    "x.com": () => new TwitterAuthProvider(),
-    "facebook.com": () => new FacebookAuthProvider(),
-    "microsoft.com": () => new OAuthProvider("microsoft.com"),
-    "yahoo.com": () => new OAuthProvider("yahoo.com"),
-    "apple.com": () => new OAuthProvider("apple.com"),
-  };
-
-  let provider = null;
+  let provider: OAuthProvider;
 
   //non-default providers are initialized as OAuth
   if (providerId != "emailpassword") {
@@ -113,9 +75,7 @@ export default function Provider({
   }
 
   if (provider && scopes) {
-    scopes.forEach((scope) => {
-      provider.addScope(scope);
-    });
+    scopes.forEach((scope) => provider.addScope(scope));
   }
 
   if (provider && customParameters) {
@@ -124,88 +84,76 @@ export default function Provider({
 
   const submit = async () => {
     if (providerId == "emaillink") {
-      await setEmailLinkOpen(true);
+      config.setState({ key: "emailLinkOpen", value: true });
     } else if (providerId == "phonenumber") {
-      await setSendSMS(true);
+      config.setState({ key: "sendSMS", value: true });
     } else {
       const flowFunction = () =>
         providerId == "anonymous"
-          ? signInAnonymously(auth)
+          ? signInAnonymously(config.auth)
           : signInFlow == "redirect"
-            ? signInWithRedirect(auth, provider, browserPopupRedirectResolver)
-            : signInWithPopup(auth, provider, browserPopupRedirectResolver);
+            ? signInWithRedirect(
+                config.auth,
+                provider,
+                browserPopupRedirectResolver,
+              )
+            : signInWithPopup(
+                config.auth,
+                provider,
+                browserPopupRedirectResolver,
+              );
       try {
         await flowFunction().then((user) => {
-          callbacks?.signInSuccessWithAuthResult(user);
+          config.callbacks.signInSuccessWithAuthResult(user);
         });
       } catch (error) {
         if (error.code === "auth/multi-factor-auth-required") {
-          setMfaResolver(getMultiFactorResolver(auth, error));
-          setMfaSignIn(true);
-          setSendSMS(true);
+          config.setState({
+            key: "mfaResolver",
+            value: getMultiFactorResolver(config.auth, error),
+          });
+          config.setState({ key: "mfaSignIn", value: true });
+          config.setState({ key: "sendSMS", value: true });
         } else {
-          setError(translateError(error.code, language, customText));
-          if (typeof callbacks?.signInFailure === "function") {
-            callbacks?.signInFailure(error);
+          config.setState({
+            key: "error",
+            value: translateError(
+              error.code,
+              config.language,
+              config.customText,
+            ),
+          });
+          if (typeof config.callbacks.signInFailure === "function") {
+            config.callbacks.signInFailure(error);
           }
         }
       }
     }
   };
 
-  const styles = providerStyles[providerId] || providerStyles["default"];
+  const providerData = providerStyles[providerId] || providerStyles["default"];
   const buttonStyles = {
-    ...styles?.buttonStyles,
-    ...(customStyles || null),
+    ...providerData?.buttonStyles,
+    ...customStyles,
   };
 
   return providerId == "emailpassword" ? (
-    <EmailPassword
-      auth={auth}
-      callbacks={callbacks}
-      authType={authType}
-      continueUrl={continueUrl}
-      setAlert={setAlert}
-      setError={setError}
-      passwordSpecs={passwordSpecs}
-      setSendSMS={setSendSMS}
-      setMfaSignIn={setMfaSignIn}
-      setMfaResolver={setMfaResolver}
-      displayName={displayName}
-      fullLabel={fullLabel}
-      formDisabledStyles={formDisabledStyles}
-      formButtonStyles={formButtonStyles}
-      formInputStyles={formInputStyles}
-      formLabelStyles={formLabelStyles}
-      formSmallButtonStyles={formSmallButtonStyles}
-      customErrors={customErrors}
-      language={language}
-      customText={customText}
-    />
+    <EmailPassword authType={authType} fullLabel={fullLabel} />
   ) : providerId == "jsx" ? (
     <>{jsx}</>
   ) : (
     <button
       style={{
-        display: "flex",
-        gap: "0.75rem",
-        padding: "0.5rem 0.75rem",
-        borderRadius: "0.375rem",
-        boxShadow: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        width: "100%",
-        justifyContent: "center",
-        alignItems: "center",
-        border: "1px solid #e5e7eb",
-        cursor: "pointer",
+        ...styles.providerButton,
         ...buttonStyles,
       }}
       onClick={submit}
     >
-      {icon ? icon : styles.icon}
-      <span style={{ fontSize: "0.875rem", fontWeight: "500" }}>
+      {icon ? icon : providerData.icon}
+      <span style={styles.providerButtonText}>
         {fullLabel
           ? fullLabel
-          : `${translate("signInWith", language, customText)} ${providerName}`}
+          : `${translate("signInWith", config.language, config.customText)} ${providerName}`}
       </span>
     </button>
   );

@@ -1,33 +1,37 @@
-const path = require("path");
+import { resolve as _resolve, dirname } from "path";
+import { fileURLToPath } from "url";
+import CopyWebpackPlugin from "copy-webpack-plugin";
+import process from "process";
 
-module.exports = {
-  mode: "development",
-  entry: "./src/index.js", // Entry point for your library
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
-    library: "FirebaseUIReact",
-    libraryTarget: "umd",
-    // globalObject: "this"
-  },
-  externals: {
-    react: "react",
-    firebase: "firebase",
-  },
-  devtool: "source-map",
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const { NODE_ENV } = process.env;
+
+const config = {
+  mode: NODE_ENV ?? "development",
+  entry: _resolve(__dirname, "example/src/index.tsx"),
   module: {
     rules: [
       {
-        test: /\.jsx?$/,
+        test: /.tsx?$/,
         exclude: /node_modules/,
-        include: [path.resolve(__dirname, "src")],
-        use: {
-          loader: "babel-loader",
-        },
+        use: "ts-loader",
       },
     ],
   },
   resolve: {
-    extensions: [".js", ".jsx"],
+    extensions: [".tsx", ".ts", ".js"],
   },
+  output: {
+    filename: "bundle.js",
+    path: _resolve(__dirname, "dist"),
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [{ from: "public" }],
+    }),
+  ],
 };
+
+export default config;

@@ -3,11 +3,12 @@ import React, {
   CSSProperties,
   Dispatch,
   SetStateAction,
+  useContext,
   useState,
 } from "react";
 import { useEffect } from "react";
 import { translate } from "../languages";
-import { FirebaseAuthUiConfig } from "../types";
+import { ConfigContext } from "../FirebaseAuthUi";
 
 function passwordErrors({ password, passwordSpecs }) {
   const errors = [];
@@ -92,61 +93,41 @@ function formatPasswordRequirements(passwordSpecs, language, customText) {
 interface PasswordFieldProps {
   value: string;
   setValue: Dispatch<SetStateAction<string>>;
-  specs: {
-    minCharacters?: number;
-    containsUppercase?: boolean;
-    containsLowercase?: boolean;
-    containsNumber?: boolean;
-    containsSpecialCharacter?: boolean;
-  };
   validInputStyle: CSSProperties;
   invalidInputStyle: CSSProperties;
   labelStyle: CSSProperties;
   descriptionStyle: CSSProperties;
   newPassword?: boolean;
   onResetPassword?: VoidFunction;
-  formInputStyles?: CSSProperties;
-  formLabelStyles?: CSSProperties;
-  formSmallButtonStyles?: CSSProperties;
   setPasswordValid: Dispatch<SetStateAction<boolean>>;
   authType: string;
   emailValid: boolean;
-  setError: Dispatch<SetStateAction<string>>;
-  callbacks?: FirebaseAuthUiConfig["callbacks"];
-  language: FirebaseAuthUiConfig["language"];
-  customText: FirebaseAuthUiConfig["customText"];
   disabled?: boolean;
 }
 
 export default function PasswordField({
   value,
   setValue,
-  specs,
   validInputStyle,
   invalidInputStyle,
   labelStyle,
   descriptionStyle,
   newPassword = false,
   onResetPassword = null,
-  formInputStyles,
-  formLabelStyles,
-  formSmallButtonStyles,
   setPasswordValid,
   authType,
   emailValid,
-  setError,
-  callbacks,
-  language,
-  customText,
-  disabled,
 }: PasswordFieldProps) {
+  const config = useContext(ConfigContext);
+
   const [show, setShow] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const [resettingPassword, setResettingPassword] = useState(false);
 
   const isValid =
-    passwordErrors({ password: value, passwordSpecs: specs }).length === 0;
+    passwordErrors({ password: value, passwordSpecs: config.passwordSpecs })
+      .length === 0;
 
   const inputStyle = isDirty && !isValid ? invalidInputStyle : validInputStyle;
 
@@ -163,10 +144,13 @@ export default function PasswordField({
           justifyContent: "space-between",
         }}
       >
-        <label htmlFor="password" style={{ ...labelStyle, ...formLabelStyles }}>
+        <label
+          htmlFor="password"
+          style={{ ...labelStyle, ...config.formLabelStyles }}
+        >
           {newPassword
-            ? translate("newPassword", language, customText)
-            : translate("password", language, customText)}
+            ? translate("newPassword", config.language, config.customText)
+            : translate("password", config.language, config.customText)}
         </label>
         {authType != "signUp" && (
           <div style={{ fontSize: "0.875rem" }}>
@@ -174,7 +158,7 @@ export default function PasswordField({
               style={{
                 fontWeight: "600",
                 color: emailValid ? "#2563eb" : "#3b3b3b",
-                ...formSmallButtonStyles,
+                ...config.formSmallButtonStyles,
               }}
               type="button"
               tabIndex={4}
@@ -182,27 +166,35 @@ export default function PasswordField({
                 e.preventDefault();
                 if (!newPassword) {
                   if (!emailValid) {
-                    setError(
-                      translate("emailDirtyNewPassword", language, customText),
-                    );
+                    config.setState({
+                      key: "error",
+                      value: translate(
+                        "invalidEmail",
+                        config.language,
+                        config.customText,
+                      ),
+                    });
                   } else {
                     setResettingPassword(true);
-                    await onResetPassword();
+                    onResetPassword();
                     setResettingPassword(false);
                   }
                 } else {
-                  if (callbacks?.signInSuccessWithAuthResult)
-                    callbacks.signInSuccessWithAuthResult(null);
+                  if (config.callbacks.signInSuccessWithAuthResult) {
+                    config.callbacks.signInSuccessWithAuthResult(null);
+                  }
                 }
               }}
-              // onMouseOver={(e) => (e.target.style.color = "#3b82f6")}
-              // onMouseOut={(e) => (e.target.style.color = "#2563eb")}
             >
               {newPassword
-                ? translate("skip", language, customText)
+                ? translate("skip", config.language, config.customText)
                 : resettingPassword
-                  ? translate("sending", language, customText)
-                  : translate("sendResetLink", language, customText)}
+                  ? translate("sending", config.language, config.customText)
+                  : translate(
+                      "sendResetLink",
+                      config.language,
+                      config.customText,
+                    )}
             </button>
           </div>
         )}
@@ -214,11 +206,19 @@ export default function PasswordField({
           type={show ? "text" : "password"}
           name="password"
           id="password"
-          style={{ ...inputStyle, ...formInputStyles }}
+          style={{ ...inputStyle, ...config.formInputStyles }}
           placeholder={
             newPassword
-              ? translate("newPasswordPlaceholder", language, customText)
-              : translate("passwordPlaceholder", language, customText)
+              ? translate(
+                  "newPasswordPlaceholder",
+                  config.language,
+                  config.customText,
+                )
+              : translate(
+                  "passwordPlaceholder",
+                  config.language,
+                  config.customText,
+                )
           }
           autoComplete={newPassword ? "new-password" : "current-password"}
           aria-describedby="password-description"
@@ -232,7 +232,11 @@ export default function PasswordField({
       <p style={descriptionStyle} id="password-description">
         {isDirty &&
           !isValid &&
-          formatPasswordRequirements(specs, language, customText)}
+          formatPasswordRequirements(
+            config.passwordSpecs,
+            config.language,
+            config.customText,
+          )}
         &nbsp;
       </p>
     </div>
