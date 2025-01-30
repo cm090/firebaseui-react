@@ -16,11 +16,10 @@ export default function EmailLink() {
   const [email, setEmail] = useState("");
   const [formIsValid, setFormIsValid] = useState(false);
   const [finishEmailSignIn, setFinishEmailSignIn] = useState(false);
-  const [name, setName] = useState("");
   const emailRef = useRef(null);
 
-  const processNetworkError = (error) => {
-    error = JSON.parse(JSON.stringify(error));
+  const processNetworkError = (err: unknown) => {
+    const error = JSON.parse(JSON.stringify(err));
     if (
       error.code === 400 ||
       (error.code === "auth/network-request-failed" &&
@@ -43,11 +42,8 @@ export default function EmailLink() {
   );
 
   useEffect(() => {
-    setFormIsValid(
-      isEmailValid() &&
-        (config.displayName == "required" ? name.length > 0 : true),
-    );
-  }, [email, name]);
+    setFormIsValid(isEmailValid() && config.displayName !== "required");
+  }, [email]);
 
   useEffect(() => {
     let isSigningIn = false;
@@ -64,7 +60,7 @@ export default function EmailLink() {
       try {
         await signInWithEmailLink(
           config.auth,
-          queryEmail,
+          queryEmail!,
           window.location.href,
         ).then((user) => {
           if (queryName) {
@@ -114,7 +110,7 @@ export default function EmailLink() {
     return regex.test(email);
   };
 
-  const submit = async function (e) {
+  const submit = async function (e: MouseEvent) {
     e.preventDefault();
     try {
       if (finishEmailSignIn) {
@@ -131,9 +127,7 @@ export default function EmailLink() {
       } else {
         await sendSignInLinkToEmail(config.auth, email, {
           handleCodeInApp: true,
-          url: `${config.continueUrl}/?email=${email}${
-            name.length > 0 ? "&name=" + name : ""
-          }`,
+          url: `${config.continueUrl}/?email=${email}`,
         }).then(() => {
           config.setState({
             key: "alert",
@@ -268,7 +262,7 @@ export default function EmailLink() {
               ...config.formButtonStyles,
               ...(formIsValid ? {} : config.formDisabledStyles),
             }}
-            onClick={(e) => submit(e)}
+            onClick={(e) => submit(e as unknown as MouseEvent)}
           >
             {finishEmailSignIn
               ? translate("finishSigningIn", config.language, config.customText)

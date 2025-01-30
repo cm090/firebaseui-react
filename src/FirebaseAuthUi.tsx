@@ -6,10 +6,15 @@ import { FirebaseAuthForm } from "./FirebaseAuthForm";
 
 interface FirebaseAuthUiProps {
   auth: Auth;
-  config?: Omit<FirebaseAuthUiConfig, "auth" | "state" | "setState">;
+  config: Omit<FirebaseAuthUiConfig, "auth" | "state" | "setState">;
 }
 
-export const ConfigContext = createContext<FirebaseAuthUiConfig>(defaultConfig);
+export const ConfigContext = createContext<FirebaseAuthUiConfig>({
+  ...defaultConfig,
+  auth: {} as Auth,
+  state: {} as FirebaseAuthUiState,
+  setState: () => {},
+});
 
 const handleState = (
   state: FirebaseAuthUiState,
@@ -20,7 +25,7 @@ const handleState = (
 ) => ({ ...state, [action.key]: action.value });
 
 export const FirebaseAuthUi = ({ auth, config }: FirebaseAuthUiProps) => {
-  const [state, setState] = useReducer(handleState, defaultConfig.state);
+  const [state, setState] = useReducer(handleState, {} as FirebaseAuthUiState);
 
   return (
     <ConfigContext.Provider value={{ auth, state, setState, ...config }}>

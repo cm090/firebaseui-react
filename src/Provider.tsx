@@ -1,5 +1,6 @@
-import React, { useContext } from "react";
+import React, { JSX, useContext } from "react";
 import {
+  AuthProvider,
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
@@ -48,7 +49,7 @@ export default function Provider({
     } else if (providerId == "phonenumber") {
       providerName = "Phone Number";
     } else {
-      const match = providerId.match(/^([^.]+)/);
+      const match = providerId.match(/^([^.]+)/) ?? [];
       providerName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
     }
   }
@@ -65,12 +66,12 @@ export default function Provider({
     );
   }
 
-  let provider: OAuthProvider;
+  let provider: OAuthProvider | GoogleAuthProvider | null = null;
 
   //non-default providers are initialized as OAuth
   if (providerId != "emailpassword") {
-    provider = providerMap[providerId]
-      ? providerMap[providerId]()
+    provider = providerMap[providerId as keyof typeof providerMap]
+      ? providerMap[providerId as keyof typeof providerMap]()
       : new OAuthProvider(providerId);
   }
 
@@ -94,51 +95,53 @@ export default function Provider({
           : signInFlow == "redirect"
             ? signInWithRedirect(
                 config.auth,
-                provider,
+                provider as AuthProvider,
                 browserPopupRedirectResolver,
               )
             : signInWithPopup(
                 config.auth,
-                provider,
+                provider as AuthProvider,
                 browserPopupRedirectResolver,
               );
-      try {
-        await flowFunction().then((user) => {
-          config.callbacks.signInSuccessWithAuthResult(user);
-        });
-      } catch (error) {
-        if (error.code === "auth/multi-factor-auth-required") {
-          config.setState({
-            key: "mfaResolver",
-            value: getMultiFactorResolver(config.auth, error),
-          });
-          config.setState({ key: "mfaSignIn", value: true });
-          config.setState({ key: "sendSMS", value: true });
-        } else {
-          config.setState({
-            key: "error",
-            value: translateError(
-              error.code,
-              config.language,
-              config.customText,
-            ),
-          });
-          if (typeof config.callbacks.signInFailure === "function") {
-            config.callbacks.signInFailure(error);
+      await flowFunction()
+        .then((user) => {
+          config.callbacks.signInSuccessWithAuthResult?.(user);
+        })
+        .catch((error) => {
+          if (error.code === "auth/multi-factor-auth-required") {
+            config.setState({
+              key: "mfaResolver",
+              value: getMultiFactorResolver(config.auth, error),
+            });
+            config.setState({ key: "mfaSignIn", value: true });
+            config.setState({ key: "sendSMS", value: true });
+          } else {
+            config.setState({
+              key: "error",
+              value: translateError(
+                error.code,
+                config.language,
+                config.customText,
+              ),
+            });
+            if (typeof config.callbacks.signInFailure === "function") {
+              config.callbacks.signInFailure(error);
+            }
           }
-        }
-      }
+        });
     }
   };
 
-  const providerData = providerStyles[providerId] || providerStyles["default"];
+  const providerData =
+    providerStyles[providerId as keyof typeof providerStyles] ||
+    providerStyles["default"];
   const buttonStyles = {
     ...providerData?.buttonStyles,
     ...customStyles,
   };
 
   return providerId == "emailpassword" ? (
-    <EmailPassword authType={authType} fullLabel={fullLabel} />
+    <EmailPassword authType={authType!} fullLabel={fullLabel!} />
   ) : providerId == "jsx" ? (
     <>{jsx}</>
   ) : (
@@ -149,7 +152,7 @@ export default function Provider({
       }}
       onClick={submit}
     >
-      {icon ? icon : providerData.icon}
+      {icon ? icon : (providerData as { icon: JSX.Element }).icon}
       <span style={styles.providerButtonText}>
         {fullLabel
           ? fullLabel

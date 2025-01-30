@@ -1,3 +1,8 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-nocheck
+
+import { FirebaseAuthUiConfig } from "types";
+
 export const languages = {
   // Arabic العربية
   ar: {
@@ -594,14 +599,22 @@ export const languages = {
   },
 };
 
-export const translate = (key, language, customTextMap = null) => {
+export const translate = (
+  key: string,
+  language?: string,
+  customTextMap?: FirebaseAuthUiConfig["customText"],
+) => {
   // Check if customTextMap is not null and key exists, otherwise proceed
   return (
     customTextMap?.[key] ?? languages[language]?.[key] ?? languages["en"][key]
   );
 };
 
-export const translateError = (key, language, customTextMap = null) => {
+export const translateError = (
+  key: string,
+  language?: string,
+  customTextMap?: FirebaseAuthUiConfig["customText"],
+) => {
   // Use optional chaining and nullish coalescing to gracefully handle null or undefined values
   const rest =
     customTextMap?.errors?.[key] ??

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { useContext } from "react";
 import { sendEmailVerification } from "firebase/auth";
 import { useEffect, useState } from "react";
@@ -25,6 +23,14 @@ export default function VerifyEmail() {
     );
   }
 
+  if (!config.state.user) {
+    config.setState({
+      key: "error",
+      value: "No user is signed in.",
+    });
+    return <></>;
+  }
+
   return (
     <>
       <h1>Email Verification</h1>
@@ -33,12 +39,14 @@ export default function VerifyEmail() {
         <button
           onClick={async (e) => {
             e.preventDefault();
-            await sendEmailVerification(config.state.user)
+            await sendEmailVerification(config.state.user!)
               .then(() => {
                 setSent(true);
                 config.setState({
                   key: "alert",
-                  value: `An email has been sent to ${config.state.user.email}`,
+                  value: `An email has been sent to ${
+                    config.state.user!.email
+                  }`,
                 });
               })
               .catch((error) => {

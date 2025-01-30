@@ -21,7 +21,7 @@ export const FirebaseAuthForm = () => {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(config.auth, (user) => {
-      config.setState({ key: "user", value: user });
+      config.setState({ key: "user", value: user ?? undefined });
     });
     return () => unsubscribe();
   }, [config.auth]);

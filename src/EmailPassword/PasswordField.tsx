@@ -9,8 +9,16 @@ import React, {
 import { useEffect } from "react";
 import { translate } from "../languages";
 import { ConfigContext } from "../FirebaseAuthUi";
+import { FirebaseAuthUiConfig } from "types";
+import { UserCredential } from "firebase/auth";
 
-function passwordErrors({ password, passwordSpecs }) {
+function passwordErrors({
+  password,
+  passwordSpecs,
+}: {
+  password: string;
+  passwordSpecs: FirebaseAuthUiConfig["passwordSpecs"];
+}) {
   const errors = [];
   const minCharacters = Math.max(6, passwordSpecs?.minCharacters || 6);
   if (password.length < minCharacters)
@@ -38,7 +46,11 @@ function passwordErrors({ password, passwordSpecs }) {
   return errors;
 }
 
-function formatPasswordRequirements(passwordSpecs, language, customText) {
+function formatPasswordRequirements(
+  passwordSpecs: FirebaseAuthUiConfig["passwordSpecs"],
+  language: string,
+  customText: FirebaseAuthUiConfig["customText"],
+) {
   const requirements = [];
 
   requirements.push(
@@ -113,14 +125,13 @@ export default function PasswordField({
   labelStyle,
   descriptionStyle,
   newPassword = false,
-  onResetPassword = null,
+  onResetPassword = () => null,
   setPasswordValid,
   authType,
   emailValid,
 }: PasswordFieldProps) {
   const config = useContext(ConfigContext);
 
-  const [show, setShow] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
   const [resettingPassword, setResettingPassword] = useState(false);
@@ -181,7 +192,9 @@ export default function PasswordField({
                   }
                 } else {
                   if (config.callbacks.signInSuccessWithAuthResult) {
-                    config.callbacks.signInSuccessWithAuthResult(null);
+                    config.callbacks.signInSuccessWithAuthResult(
+                      null as unknown as UserCredential,
+                    );
                   }
                 }
               }}
@@ -203,7 +216,7 @@ export default function PasswordField({
       <div style={{ marginTop: "0.5rem" }}>
         <input
           required
-          type={show ? "text" : "password"}
+          type={"password"}
           name="password"
           id="password"
           style={{ ...inputStyle, ...config.formInputStyles }}
@@ -234,7 +247,7 @@ export default function PasswordField({
           !isValid &&
           formatPasswordRequirements(
             config.passwordSpecs,
-            config.language,
+            config.language!,
             config.customText,
           )}
         &nbsp;

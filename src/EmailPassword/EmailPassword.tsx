@@ -1,4 +1,9 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, {
+  FormEventHandler,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -74,153 +79,149 @@ export default function EmailPassword({
 
   // MFA Resolver
 
-  async function authenticateUser(e) {
-    e.preventDefault();
+  async function authenticateUser(e: FormEventHandler) {
+    (e as unknown as { preventDefault: () => void }).preventDefault();
     if (loading) return;
     setLoading(true);
 
     if (authType === "signIn") {
-      try {
-        await signInWithEmailAndPassword(config.auth, email, password).then(
-          (userCred) => {
-            if (config.callbacks.signInSuccessWithAuthResult) {
-              config.callbacks.signInSuccessWithAuthResult(userCred);
-            }
-          },
-        );
-      } catch (err) {
-        const error = processNetworkError(err);
-        if (error.code === "auth/multi-factor-auth-required") {
-          // signing them in didn't work because they have MFA enabled. Let's send them an MFA token
-          config.setState({
-            key: "mfaResolver",
-            value: getMultiFactorResolver(config.auth, error),
-          });
-          config.setState({ key: "mfaSignIn", value: true });
-          config.setState({ key: "sendSMS", value: true });
-        } else {
-          config.setState({
-            key: "error",
-            value: translateError(
-              error.code,
-              config.language,
-              config.customText,
-            ),
-          });
-          setLoading(false);
-          if (typeof config.callbacks.signInFailure === "function") {
-            config.callbacks.signInFailure(error);
+      await signInWithEmailAndPassword(config.auth, email, password)
+        .then((userCred) => {
+          if (config.callbacks.signInSuccessWithAuthResult) {
+            config.callbacks.signInSuccessWithAuthResult(userCred);
           }
-        }
-      }
+        })
+        .catch((err) => {
+          const error = processNetworkError(err);
+          if (error.code === "auth/multi-factor-auth-required") {
+            // signing them in didn't work because they have MFA enabled. Let's send them an MFA token
+            config.setState({
+              key: "mfaResolver",
+              value: getMultiFactorResolver(config.auth, error),
+            });
+            config.setState({ key: "mfaSignIn", value: true });
+            config.setState({ key: "sendSMS", value: true });
+          } else {
+            config.setState({
+              key: "error",
+              value: translateError(
+                error.code,
+                config.language,
+                config.customText,
+              ),
+            });
+            setLoading(false);
+            if (typeof config.callbacks.signInFailure === "function") {
+              config.callbacks.signInFailure(error);
+            }
+          }
+        });
     } else {
       // first try to create an account
-      try {
-        await createUserWithEmailAndPassword(config.auth, email, password).then(
-          async (userCred) => {
-            if (config.displayName && name) {
-              await updateProfile(config.auth.currentUser, {
-                displayName: name,
-              }).then(() => {
-                if (config.callbacks.signInSuccessWithAuthResult) {
-                  config.callbacks.signInSuccessWithAuthResult(userCred);
-                }
-              });
-            } else if (config.callbacks.signInSuccessWithAuthResult) {
-              config.callbacks.signInSuccessWithAuthResult(userCred);
-            }
+      await createUserWithEmailAndPassword(config.auth, email, password)
+        .then(async (userCred) => {
+          if (config.displayName && name) {
+            await updateProfile(config.auth.currentUser!, {
+              displayName: name,
+            }).then(() => {
+              if (config.callbacks.signInSuccessWithAuthResult) {
+                config.callbacks.signInSuccessWithAuthResult(userCred);
+              }
+            });
+          } else if (config.callbacks.signInSuccessWithAuthResult) {
+            config.callbacks.signInSuccessWithAuthResult(userCred);
+          }
 
-            setLoading(false);
-          },
-        );
-      } catch (err) {
-        const error = processNetworkError(err);
-        if (
-          error.code === "auth/email-already-in-use" &&
-          authType !== "signUp"
-        ) {
-          // because the user already has an account! Let's try signing them in...
-          try {
-            await signInWithEmailAndPassword(config.auth, email, password).then(
-              (userCred) => {
+          setLoading(false);
+        })
+        .catch(async (err) => {
+          const error = processNetworkError(err);
+          if (
+            error.code === "auth/email-already-in-use" &&
+            authType !== "signUp"
+          ) {
+            // because the user already has an account! Let's try signing them in...
+            await signInWithEmailAndPassword(config.auth, email, password)
+              .then((userCred) => {
                 if (config.callbacks.signInSuccessWithAuthResult) {
                   config.callbacks.signInSuccessWithAuthResult(userCred);
                 }
                 setLoading(false);
-              },
-            );
-            return;
-          } catch (err) {
-            const error = processNetworkError(err);
-            //const code2 = codeFromError(err2);
+              })
+              .catch((err) => {
+                const error = processNetworkError(err);
+                //const code2 = codeFromError(err2);
+                setLoading(false);
+                if (error.code === "auth/multi-factor-auth-required") {
+                  // signing them in didn't work because they have MFA enabled. Let's send them an MFA token
+                  config.setState({
+                    key: "mfaResolver",
+                    value: getMultiFactorResolver(config.auth, error),
+                  });
+                  config.setState({ key: "mfaSignIn", value: true });
+                  config.setState({ key: "sendSMS", value: true });
+                } else {
+                  // signing in didn't work for a different reason
+                  config.setState({
+                    key: "error",
+                    value: translateError(
+                      error.code,
+                      config.language,
+                      config.customText,
+                    ),
+                  });
+                  if (typeof config.callbacks.signInFailure === "function") {
+                    config.callbacks.signInFailure(error);
+                  }
+                }
+              });
+          } else {
+            // creating an account didn't work for some other reason
             setLoading(false);
-            if (error.code === "auth/multi-factor-auth-required") {
-              // signing them in didn't work because they have MFA enabled. Let's send them an MFA token
-              config.setState({
-                key: "mfaResolver",
-                value: getMultiFactorResolver(config.auth, error),
-              });
-              config.setState({ key: "mfaSignIn", value: true });
-              config.setState({ key: "sendSMS", value: true });
-            } else {
-              // signing in didn't work for a different reason
-              config.setState({
-                key: "error",
-                value: translateError(
-                  error.code,
-                  config.language,
-                  config.customText,
-                ),
-              });
-              if (typeof config.callbacks.signInFailure === "function") {
-                config.callbacks.signInFailure(error);
-              }
+            config.setState({
+              key: "error",
+              value: translateError(
+                error.code,
+                config.language,
+                config.customText,
+              ),
+            });
+            if (typeof config.callbacks.signInFailure === "function") {
+              config.callbacks.signInFailure(error);
             }
           }
-        } else {
-          // creating an account didn't work for some other reason
-          setLoading(false);
-          config.setState({
-            key: "error",
-            value: translateError(
-              error.code,
-              config.language,
-              config.customText,
-            ),
-          });
-          if (typeof config.callbacks.signInFailure === "function") {
-            config.callbacks.signInFailure(error);
-          }
-        }
-      }
+        });
     }
   }
 
   async function onResetPassword() {
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("email", email);
-      url.searchParams.set("resetPassword", "true");
-      await sendSignInLinkToEmail(config.auth, email, {
-        handleCodeInApp: true,
-        url: url.toString(),
-      }).then(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("email", email);
+    url.searchParams.set("resetPassword", "true");
+    await sendSignInLinkToEmail(config.auth, email, {
+      handleCodeInApp: true,
+      url: url.toString(),
+    })
+      .then(() => {
         config.setState({
           key: "alert",
           value: `${translate("resetPasswordSent", config.language, config.customText)} ${email}.`,
         });
+      })
+      .catch((err) => {
+        const error = processNetworkError(err);
+        config.setState({
+          key: "error",
+          value: translateError(error.code, config.language, config.customText),
+        });
       });
-    } catch (err) {
-      const error = processNetworkError(err);
-      config.setState({
-        key: "error",
-        value: translateError(error.code, config.language, config.customText),
-      });
-    }
   }
 
   return (
-    <form style={{ width: "100%" }} onSubmit={authenticateUser}>
+    <form
+      style={{ width: "100%" }}
+      onSubmit={(e) => authenticateUser(e as unknown as FormEventHandler)}
+    >
       {config.displayName && (
         <NameField
           value={name}

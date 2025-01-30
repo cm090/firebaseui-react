@@ -6,7 +6,6 @@ import {
   signInWithPhoneNumber,
   updateProfile,
 } from "firebase/auth";
-import { providerStyles } from "./providerStyles";
 import React, { useContext, useEffect, useRef, useState } from "react";
 import { translate, translateError } from "./languages";
 import { ConfigContext } from "./FirebaseAuthUi";
@@ -14,8 +13,6 @@ import { ConfigContext } from "./FirebaseAuthUi";
 export default function PhoneNumber() {
   const config = useContext(ConfigContext);
 
-  //TODO: custom styles here too
-  const styles = providerStyles["phonenumber"] || providerStyles["default"];
   const [phoneNumber, setPhoneNumber] = useState("");
   //TODO phone number validity
   const [phoneNumberValid, setPhoneNumberValid] = useState(false);
@@ -26,8 +23,8 @@ export default function PhoneNumber() {
   const [name, setName] = useState("");
   const [selectedHint, setSelectedHint] = useState(0);
 
-  const processNetworkError = (error) => {
-    error = JSON.parse(JSON.stringify(error));
+  const processNetworkError = (err: unknown) => {
+    const error = JSON.parse(JSON.stringify(err));
     if (
       error.code === 400 ||
       (error.code === "auth/network-request-failed" &&
@@ -42,7 +39,7 @@ export default function PhoneNumber() {
   };
 
   const phoneAuthProvider = new PhoneAuthProvider(config.auth);
-  let recaptchaVerifier;
+  let recaptchaVerifier: RecaptchaVerifier | null = null;
 
   useEffect(() => {
     setPhoneNumberValid(
@@ -88,7 +85,7 @@ export default function PhoneNumber() {
 
   const inputRefs = Array(6).fill((() => useRef(null))());
 
-  const handleCodeChange = (value, index) => {
+  const handleCodeChange = (value: string, index: number) => {
     if (value !== "" && !/\d/.test(value)) return;
     const newCode = [...code];
     newCode[index] = value;
@@ -99,13 +96,13 @@ export default function PhoneNumber() {
     }
   };
 
-  const handleBackspace = (e, index) => {
+  const handleBackspace = (e: KeyboardEvent, index: number) => {
     if (e.key === "Backspace" && index > 0 && !code[index]) {
       inputRefs[index - 1].current.focus();
     }
   };
 
-  const handlePhoneInput = (value) => {
+  const handlePhoneInput = (value: string) => {
     let cleaned = value.replace(/\D/g, "");
 
     const parts = [];
@@ -184,7 +181,7 @@ export default function PhoneNumber() {
         .confirm(formattedCode)
         .then(() => {
           //TODO restructure to get user credential
-          if (name.length > 0) {
+          if (name.length > 0 && config.auth.currentUser) {
             updateProfile(config.auth.currentUser, { displayName: name });
           }
           config.setState({ key: "sendSMS", value: false });
@@ -208,12 +205,12 @@ export default function PhoneNumber() {
       const cred = PhoneAuthProvider.credential(verificationId, formattedCode);
       const multiFactorAssertion = PhoneMultiFactorGenerator.assertion(cred);
       try {
-        config.state.mfaResolver
-          .resolveSignIn(multiFactorAssertion)
+        config.state
+          .mfaResolver!.resolveSignIn(multiFactorAssertion)
           .then((userCred) => {
             if (config.callbacks.signInSuccessWithAuthResult) {
               config.setState({ key: "sendSMS", value: false });
-              config.setState({ key: "mfaResolver", value: null });
+              config.setState({ key: "mfaResolver", value: undefined });
               config.setState({ key: "mfaSignIn", value: false });
               config.callbacks.signInSuccessWithAuthResult(userCred);
             }
@@ -574,7 +571,9 @@ export default function PhoneNumber() {
                 maxLength={1}
                 value={digit}
                 onChange={(e) => handleCodeChange(e.target.value, index)}
-                onKeyDown={(e) => handleBackspace(e, index)}
+                onKeyDown={(e) =>
+                  handleBackspace(e as unknown as KeyboardEvent, index)
+                }
                 style={{
                   border: "1px solid #e2e8f0", // gray-300
                   borderRadius: "0.375rem",

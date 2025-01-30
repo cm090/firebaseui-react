@@ -1,12 +1,15 @@
 import { CSSProperties } from "react";
 import { FirebaseAuthUiConfig } from "./types";
 
-export const defaultConfig: FirebaseAuthUiConfig = {
-  callbacks: {},
+export const defaultConfig: Omit<
+  FirebaseAuthUiConfig,
+  "auth" | "state" | "setState"
+> = {
+  callbacks: {
+    signInSuccessWithAuthResult: () => null,
+    signInFailure: () => null,
+  },
   signInOptions: ["emailpassword"],
-  auth: null,
-  state: {},
-  setState: () => {},
 };
 
 export const styles: Record<string, CSSProperties> = {

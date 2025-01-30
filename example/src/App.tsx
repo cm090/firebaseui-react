@@ -1,6 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { initializeApp } from "firebase/app";
-import { getAuth, onAuthStateChanged, signOut } from "firebase/auth";
+import {
+  getAuth,
+  onAuthStateChanged,
+  signOut,
+  UserCredential,
+} from "firebase/auth";
 
 // in your app, use this import instead:
 // import FirebaseUI from "react-firebaseui";
@@ -15,10 +20,10 @@ export default function Home() {
     continueUrl: "http://localhost:8080",
     // requireVerifyEmail: true,
     callbacks: {
-      signInSuccessWithAuthResult: function (user) {
+      signInSuccessWithAuthResult: function (user: UserCredential) {
         console.log("successfully authenticated", user);
       },
-      signInFailure: function (error) {
+      signInFailure: function (error: Error) {
         console.log("somtin went wrong :9 :((");
         console.error(error);
       },

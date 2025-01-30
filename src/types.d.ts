@@ -28,15 +28,21 @@ export interface FirebaseAuthUiConfig {
 }
 
 interface AuthCallbacks {
-  signInSuccessWithAuthResult?: (authResult: UserCredential) => void;
-  signInFailure?: (error: Error) => void;
+  signInSuccessWithAuthResult: (authResult: UserCredential) => void;
+  signInFailure: (error: Error) => void;
 }
 
-type PasswordSpecs = unknown;
+interface PasswordSpecs {
+  minCharacters?: number;
+  containsUppercase?: boolean;
+  containsLowercase?: boolean;
+  containsNumber?: boolean;
+  containsSpecialCharacter?: boolean;
+}
 
-type CustomErrors = unknown;
+type CustomErrors = object;
 
-type CustomText = unknown;
+type CustomText = object;
 
 export interface SignInOption {
   provider: string;

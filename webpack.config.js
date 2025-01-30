@@ -29,7 +29,7 @@ const config = {
   },
   plugins: [
     new CopyWebpackPlugin({
-      patterns: [{ from: "public" }],
+      patterns: [{ from: "example/public" }],
     }),
   ],
 };
