@@ -11,7 +11,7 @@ interface FirebaseAuthUiProps {
 
 export const ConfigContext = createContext<FirebaseAuthUiConfig>({
   ...defaultConfig,
-  auth: {} as Auth,
+  auth: null as unknown as Auth,
   state: {} as FirebaseAuthUiState,
   setState: () => {},
 });
@@ -25,7 +25,10 @@ const handleState = (
 ) => ({ ...state, [action.key]: action.value });
 
 export const FirebaseAuthUi = ({ auth, config }: FirebaseAuthUiProps) => {
-  const [state, setState] = useReducer(handleState, {} as FirebaseAuthUiState);
+  const [state, setState] = useReducer(
+    handleState,
+    {} satisfies FirebaseAuthUiState,
+  );
 
   return (
     <ConfigContext.Provider value={{ auth, state, setState, ...config }}>

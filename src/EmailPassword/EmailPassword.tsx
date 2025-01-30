@@ -1,9 +1,4 @@
-import React, {
-  FormEventHandler,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { FormEvent, useContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -79,7 +74,7 @@ export default function EmailPassword({
 
   // MFA Resolver
 
-  async function authenticateUser(e: FormEventHandler) {
+  async function authenticateUser(e: FormEvent<HTMLFormElement>) {
     (e as unknown as { preventDefault: () => void }).preventDefault();
     if (loading) return;
     setLoading(true);
@@ -218,10 +213,7 @@ export default function EmailPassword({
   }
 
   return (
-    <form
-      style={{ width: "100%" }}
-      onSubmit={(e) => authenticateUser(e as unknown as FormEventHandler)}
-    >
+    <form style={{ width: "100%" }} onSubmit={authenticateUser}>
       {config.displayName && (
         <NameField
           value={name}

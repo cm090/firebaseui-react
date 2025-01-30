@@ -45,7 +45,7 @@ export default function VerifyEmail() {
                 config.setState({
                   key: "alert",
                   value: `An email has been sent to ${
-                    config.state.user!.email
+                    config.state.user?.email
                   }`,
                 });
               })

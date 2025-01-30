@@ -25,6 +25,11 @@ const config = {
     library: "FirebaseAuthUi",
     libraryTarget: "umd",
   },
+  externals: {
+    react: "react",
+    "react-dom": "react-dom",
+    firebase: "firebase",
+  }
 };
 
 export default config;

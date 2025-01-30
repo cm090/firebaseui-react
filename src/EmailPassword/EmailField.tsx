@@ -69,7 +69,6 @@ export default function EmailField({
           onChange={(e) => setValue(e.target.value)}
           onBlur={() => setIsDirty(true)}
           disabled={disabled}
-          tabIndex={1}
         />
       </div>
       <p style={descriptionStyle} id="email-description">

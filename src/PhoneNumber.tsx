@@ -83,7 +83,9 @@ export default function PhoneNumber() {
     }
   };
 
-  const inputRefs = Array(6).fill((() => useRef(null))());
+  const inputRefs = Array.from({ length: 6 }, () =>
+    useRef<HTMLInputElement>(null),
+  );
 
   const handleCodeChange = (value: string, index: number) => {
     if (value !== "" && !/\d/.test(value)) return;
@@ -92,13 +94,13 @@ export default function PhoneNumber() {
     setCode(newCode);
 
     if (value && index < 5) {
-      inputRefs[index + 1].current.focus();
+      inputRefs[index + 1].current?.focus();
     }
   };
 
   const handleBackspace = (e: KeyboardEvent, index: number) => {
     if (e.key === "Backspace" && index > 0 && !code[index]) {
-      inputRefs[index - 1].current.focus();
+      inputRefs[index - 1].current?.focus();
     }
   };
 

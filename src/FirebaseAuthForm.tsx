@@ -43,7 +43,7 @@ export const FirebaseAuthForm = () => {
       config?.requireVerifyEmail &&
       config.state.user &&
       config.state.user.providerData[0].providerId == "password" &&
-      !config.state.user?.emailVerified
+      !config.state.user.emailVerified
     ) {
       config.setState({ key: "verify", value: true });
     }

@@ -50,7 +50,11 @@ export default function Provider({
       providerName = "Phone Number";
     } else {
       const match = providerId.match(/^([^.]+)/) ?? [];
-      providerName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+      if (match[1]) {
+        providerName = match[1].charAt(0).toUpperCase() + match[1].slice(1);
+      } else {
+        providerName = providerId;
+      }
     }
   }
 

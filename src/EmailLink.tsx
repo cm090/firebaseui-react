@@ -46,9 +46,7 @@ export default function EmailLink() {
   }, [email]);
 
   useEffect(() => {
-    let isSigningIn = false;
-    if (config.auth && finishEmailSignIn && !isSigningIn) {
-      isSigningIn = true;
+    if (config.auth && finishEmailSignIn) {
       finishSignUp();
     }
 
